@@ -3,6 +3,8 @@ import PharmacySignupPage from "./pages/pharmacySignup";
 import PharmacyLoginPage from "./pages/pharmacyLogin";
 import PharmacyDashboardPage from "./pages/pharmacyDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PharmacyVerificationPage from "./pages/pharmacyVerification";
+import PharmacyProfilePage from "./pages/pharmacyProfile";
 
 function App() {
   return (
@@ -18,6 +20,15 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <PharmacyProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/dashboard/verification" element={<PharmacyVerificationPage />} />
       </Routes>
   
   );

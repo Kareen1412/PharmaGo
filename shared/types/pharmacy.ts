@@ -37,7 +37,6 @@ export interface Pharmacy {
   verificationStatus: VerificationStatus;
   ownerName: string | null;
   email: string;
-  isEmailVerified: boolean;
   createdAt: number;
   verifiedAt: number | null;
   rejectionReason: string | null; // if verificationStatus is "rejected", this field contains the reason for rejection
