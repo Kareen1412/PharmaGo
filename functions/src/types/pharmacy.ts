@@ -47,12 +47,18 @@ export interface Pharmacy {
   email: string;
   createdAt: number;
   verifiedAt: number | null;
-  isActive: boolean; // if false, either pharmacy deactivated itself or was suspended by admin upon reaching report threshold
+  isActive: boolean;
+  // if false, either pharmacy deactivated itself
+  // or was suspended by admin upon reaching report threshold
   address: PharmacyAddress;
-  suspensionReason: string | null; // if isActive is false, this field contains the reason for suspension (e.g. "Too many reports")
+  suspensionReason: string | null;
+  // if isActive is false, this field contains the reason
+  // for suspension (e.g. "Too many reports")
   reportCount: number;
   is24Hours: boolean;
   operatingHours: OperatingHours;
-  updatedAt: number | null; // timestamp of last update to pharmacy info, used for cache invalidation
+  updatedAt: number | null;
+  // timestamp of last update to pharmacy info,
+  // used for cache invalidation
   latestVerificationRequestId: string | null;
 }

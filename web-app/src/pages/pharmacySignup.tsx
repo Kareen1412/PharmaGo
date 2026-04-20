@@ -58,7 +58,7 @@ export default function PharmacySignupPage() {
 
   const handleContinue = () => {
     setShowSuccessPopup(false);
-    navigate("/dashboard");
+    navigate("/");
   };
 
   return (

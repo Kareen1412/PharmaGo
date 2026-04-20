@@ -13,7 +13,7 @@ function App() {
         <Route path="/signup" element={<PharmacySignupPage />} />
         <Route path="/login" element={<PharmacyLoginPage />} />
         <Route
-        path="/dashboard"
+        path="/"
         element={
           <ProtectedRoute>
             <PharmacyDashboardPage />
@@ -28,7 +28,14 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/dashboard/verification" element={<PharmacyVerificationPage />} />
+      <Route
+        path="/dashboard/verification"
+        element={
+          <ProtectedRoute>
+            <PharmacyVerificationPage />
+          </ProtectedRoute>
+        }
+      />
       </Routes>
   
   );

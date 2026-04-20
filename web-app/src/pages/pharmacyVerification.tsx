@@ -119,7 +119,7 @@ export default function PharmacyVerificationPage() {
         guildFile,
       });
 
-      navigate("/dashboard", {
+      navigate("/", {
         state: {
           verificationSubmitted: true,
         },
@@ -244,7 +244,7 @@ export default function PharmacyVerificationPage() {
               <button
                 type="button"
                 className={styles.secondaryButton}
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/")}
               >
                 {isViewMode ? "Back to Dashboard" : "Cancel"}
               </button>

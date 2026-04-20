@@ -1,12 +1,21 @@
 .dashboardLayout {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  background: radial-gradient(circle at top left, #dbe8dc 0%, #f0f4ed 38%, #edf3ee 100%);
+  background: radial-gradient(
+    circle at top left,
+    #dbe8dc 0%,
+    #f0f4ed 38%,
+    #edf3ee 100%
+  );
   color: #1f2a22;
 }
 
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  z-index: 1000;
   background: rgba(255, 255, 255, 0.92);
   border-right: 1px solid #e1eae3;
   padding: 24px 18px;
@@ -14,6 +23,7 @@
   flex-direction: column;
   justify-content: space-between;
   box-shadow: 6px 0 24px rgba(78, 126, 93, 0.05);
+  overflow-y: auto;
 }
 
 .sidebarTop {
@@ -70,6 +80,8 @@
 }
 
 .mainContent {
+  margin-left: 260px;
+  min-height: 100vh;
   padding: 28px;
 }
 
@@ -119,6 +131,17 @@
   font-weight: 600;
 }
 
+.secondaryButton:hover {
+  background: #f7fbf8;
+}
+
+.linkButton {
+  background: transparent;
+  color: #4e7e5d;
+  padding: 0;
+  font-weight: 600;
+}
+
 .statusBanner {
   display: flex;
   justify-content: space-between;
@@ -149,6 +172,7 @@
   font-weight: 700;
   background: #eef5ef;
   color: #3f6d4d;
+  text-transform: capitalize;
 }
 
 .pending {
@@ -173,57 +197,6 @@
   flex-wrap: wrap;
 }
 
-.topGrid {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 20px;
-  margin-bottom: 24px;
-}
-
-.card,
-.statCard {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #e4ece5;
-  border-radius: 22px;
-  box-shadow: 0 14px 34px rgba(78, 126, 93, 0.08);
-}
-
-.card {
-  padding: 22px;
-}
-
-.cardHeader,
-.sectionHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.progressBar {
-  height: 10px;
-  background: #e7efea;
-  border-radius: 999px;
-  overflow: hidden;
-  margin: 14px 0 18px;
-}
-
-.progressFill {
-  height: 100%;
-  background: #4e7e5d;
-  border-radius: 999px;
-}
-
-.checkList {
-  margin: 0 0 18px 18px;
-  padding: 0;
-  color: #5f6d63;
-}
-
-.infoList p {
-  margin: 10px 0;
-}
-
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -232,6 +205,10 @@
 }
 
 .statCard {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e4ece5;
+  border-radius: 22px;
+  box-shadow: 0 14px 34px rgba(78, 126, 93, 0.08);
   padding: 18px;
 }
 
@@ -246,134 +223,54 @@
   font-size: 1.7rem;
 }
 
-.bottomGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.listItem {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid #edf2ee;
-}
-
-.listItem h4 {
-  margin: 0 0 6px;
-}
-
-.listItem p,
-.listItem small {
-  margin: 0;
-  color: #627066;
-}
-
-.listStatus {
-  align-self: center;
-  background: #eef5ef;
-  color: #3f6d4d;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
-.linkButton {
-  background: transparent;
-  color: #3a86ff;
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.linkButton:hover {
-  text-decoration: underline;
-}
-
 @media (max-width: 1100px) {
-  .dashboardLayout {
-    grid-template-columns: 1fr;
-  }
-
   .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
     border-right: none;
     border-bottom: 1px solid #e1eae3;
   }
 
-  .topGrid,
-  .bottomGrid {
-    grid-template-columns: 1fr;
+  .mainContent {
+    margin-left: 0;
   }
 
   .statusBanner {
     flex-direction: column;
     align-items: flex-start;
   }
-}
-
-@media (max-width: 700px) {
-  .mainContent {
-    padding: 18px;
-  }
 
   .statsGrid {
     grid-template-columns: 1fr;
   }
-
-  .sidebarNav {
-    gap: 8px;
-  }
-}
-
-.unverified {
-  border-left: 6px solid #d64545;
-}
-
-.pending {
-  border-left: 6px solid #d4a72c;
-}
-
-.verified {
-  border-left: 6px solid #2e7d32;
-}
-
-.rejected {
-  border-left: 6px solid #d64545;
-}
-
-.inactive {
-  border-left: 6px solid #7f8c8d;
-}
-
-.statusBadgeUnverified {
-  background: #fdeaea;
-  color: #b42318;
 }
 
 .statusBadgePending {
-  background: #fff6db;
-  color: #a16b00;
+  background: #fff7d6;
+  color: #8c6a08;
 }
 
 .statusBadgeVerified {
-  background: #e9f7ec;
-  color: #256f3a;
+  background: #e7f5ec;
+  color: #2e6b4f;
 }
 
 .statusBadgeRejected {
-  background: #fdeaea;
-  color: #b42318;
+  background: #fde8ea;
+  color: #a33a44;
 }
 
 .statusBadgeInactive {
-  background: #eef1f2;
-  color: #5f6b72;
+  background: #f2f4f2;
+  color: #7a8a81;
+}
+
+.statusBadgeUnverified {
+  background: #fde8ea;
+  color: #a33a44;
+}
+
+.unverified {
+  border-left: 6px solid #c0392b;
 }

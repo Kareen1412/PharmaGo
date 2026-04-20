@@ -1,69 +1,122 @@
-// src/pages/PharmacyDashboardPage.tsx
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../config/firebase";
 import styles from "../styles/pharmacy-dashboard.module.css";
 import VerificationCard, {
   type VerificationStatus,
 } from "../components/VerificationCard";
+import PharmacySidebar from "../components/PharmacySidebar";
 
 type Pharmacy = {
   id: string;
   pharmacyNameEnglish: string | null;
   pharmacyNameArabic: string | null;
-  guildIdFileUrl: string | null;
   verificationStatus: VerificationStatus;
   ownerName: string | null;
   email: string;
   createdAt: number;
   verifiedAt: number | null;
-  rejectionReason: string | null;
   isActive: boolean;
   suspensionReason: string | null;
   reportCount: number;
   is24Hours: boolean;
   updatedAt: number | null;
+  latestVerificationRequestId: string | null;
+};
+
+type LatestVerification = {
+  geminiReason: string | null;
+  failureReason: string | null;
 };
 
 export default function PharmacyDashboardPage() {
-  const navigate = useNavigate();
   const [pharmacy, setPharmacy] = useState<Pharmacy | null>(null);
+  const [latestVerification, setLatestVerification] =
+    useState<LatestVerification | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const currentUser = auth.currentUser;
+    let unsubscribePharmacy: (() => void) | null = null;
+    let unsubscribeVerification: (() => void) | null = null;
 
-    if (!currentUser) {
-      setLoading(false);
-      return;
-    }
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      unsubscribePharmacy?.();
+      unsubscribeVerification?.();
 
-    const pharmacyRef = doc(db, "pharmacies", currentUser.uid);
-
-    const unsubscribe = onSnapshot(
-      pharmacyRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          setPharmacy(snapshot.data() as Pharmacy);
-        } else {
-          setPharmacy(null);
-        }
+      if (!user) {
+        setPharmacy(null);
+        setLatestVerification(null);
         setLoading(false);
-      },
-      () => {
-        setLoading(false);
+        return;
       }
-    );
 
-    return unsubscribe;
+      const pharmacyRef = doc(db, "pharmacies", user.uid);
+
+      unsubscribePharmacy = onSnapshot(
+        pharmacyRef,
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            setPharmacy(null);
+            setLatestVerification(null);
+            setLoading(false);
+            unsubscribeVerification?.();
+            unsubscribeVerification = null;
+            return;
+          }
+
+          const pharmacyData = snapshot.data() as Pharmacy;
+          setPharmacy(pharmacyData);
+          setLoading(false);
+
+          unsubscribeVerification?.();
+          unsubscribeVerification = null;
+
+          if (!pharmacyData.latestVerificationRequestId) {
+            setLatestVerification(null);
+            return;
+          }
+
+          const verificationRef = doc(
+            db,
+            "pharmacyVerificationRequests",
+            pharmacyData.latestVerificationRequestId
+          );
+
+          unsubscribeVerification = onSnapshot(
+            verificationRef,
+            (verificationSnapshot) => {
+              if (!verificationSnapshot.exists()) {
+                setLatestVerification(null);
+                return;
+              }
+
+              const data = verificationSnapshot.data();
+
+              setLatestVerification({
+                geminiReason: data.geminiReason ?? null,
+                failureReason: data.failureReason ?? null,
+              });
+            },
+            (error) => {
+              console.error("VERIFICATION SNAPSHOT ERROR:", error);
+              setLatestVerification(null);
+            }
+          );
+        },
+        (error) => {
+          console.error("PHARMACY SNAPSHOT ERROR:", error);
+          setLoading(false);
+        }
+      );
+    });
+
+    return () => {
+      unsubscribePharmacy?.();
+      unsubscribeVerification?.();
+      unsubscribeAuth();
+    };
   }, []);
-
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/pharmacy/signin");
-  };
 
   if (loading) {
     return <div className={styles.mainContent}>Loading dashboard...</div>;
@@ -81,52 +134,11 @@ export default function PharmacyDashboardPage() {
 
   return (
     <div className={styles.dashboardLayout}>
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarTop}>
-          <div className={styles.brandBox}>
-            <h2>PharmaGo</h2>
-            <p>{pharmacy.pharmacyNameEnglish || pharmacy.email}</p>
-          </div>
-
-          <nav className={styles.sidebarNav}>
-            <button className={`${styles.navItem} ${styles.activeNavItem}`}>
-              Dashboard
-            </button>
-
-            <button
-              className={styles.navItem}
-              onClick={() => navigate("/pharmacy/profile")}
-            >
-              Profile
-            </button>
-
-            <button
-              className={styles.navItem}
-              onClick={() => navigate("/pharmacy/requests")}
-            >
-              Requests
-            </button>
-
-            <button
-              className={styles.navItem}
-              onClick={() => navigate("/pharmacy/questions")}
-            >
-              Questions
-            </button>
-
-            <button
-              className={styles.navItem}
-              onClick={() => navigate("/pharmacy/settings")}
-            >
-              Settings
-            </button>
-          </nav>
-        </div>
-
-        <button className={styles.logoutButton} onClick={handleLogout}>
-          Logout
-        </button>
-      </aside>
+      <PharmacySidebar
+        pharmacyName={pharmacy.pharmacyNameEnglish}
+        email={pharmacy.email}
+        activeItem="dashboard"
+      />
 
       <main className={styles.mainContent}>
         <header className={styles.topHeader}>
@@ -141,7 +153,11 @@ export default function PharmacyDashboardPage() {
         <VerificationCard
           verificationStatus={pharmacy.verificationStatus}
           isActive={pharmacy.isActive}
-          rejectionReason={pharmacy.rejectionReason ?? undefined}
+          rejectionReason={
+            latestVerification?.geminiReason ||
+            latestVerification?.failureReason ||
+            undefined
+          }
         />
 
         <section className={styles.statsGrid}>

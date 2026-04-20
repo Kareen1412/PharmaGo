@@ -18,21 +18,22 @@ export type LatestPharmacyVerificationResponse = {
   success: boolean;
   request: {
     id: string;
-    createdAt: number;
-    extractedGuildIdNumber?: string;
-    extractedOwnerName?: string;
+    createdAt: number | null;
+    extractedGuildIdNumber?: string | null;
+    extractedOwnerName?: string | null;
     fileName: string;
-    geminiDecision?: string;
-    geminiReason?: string;
+    geminiDecision?: string | null;
+    geminiReason?: string | null;
+    failureReason?: string | null;
     guildIdNumber: string;
     mimeType: string;
     notes: string | null;
     ownerName: string;
     pharmacyId: string;
-    processedAt?: number;
-    status: "pending" | "verified" | "rejected";
+    processedAt?: number | null;
+    status: "queued" | "processing" | "verified" | "rejected" | "failed";
     storagePath: string;
-    updatedAt?: number;
+    updatedAt?: number | null;
   } | null;
 };
 

@@ -85,11 +85,10 @@ export default function VerificationCard({
       return;
     }
 
-     if (verificationStatus === "pending" || verificationStatus === "verified") {
+    if (verificationStatus === "pending" || verificationStatus === "verified") {
       navigate("/dashboard/verification?mode=view");
       return;
     }
-
 
     navigate("/dashboard/verification");
   };

@@ -40,7 +40,7 @@ export default function PharmacyLoginPage() {
     try {
       await loginPharmacy(email, password, rememberMe);
       setMessage("Login successful.");
-      navigate("/pharmacyDashboard");
+      navigate("/");
     } catch (err: unknown) {
       setError(getAuthErrorMessage(err));
     } finally {
