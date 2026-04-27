@@ -104,49 +104,6 @@
   gap: 10px;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  border-radius: 16px;
-  padding: 10px 16px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.18s ease;
-}
-
-.btnPrimary {
-  background: white;
-  color: black;
-}
-
-.btnPrimary:hover {
-  background: #3e6a4e;
-  color: white;
-}
-
-.btnSecondary {
-  background: rgba(255, 255, 255, 0.18);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-}
-
-.btnSecondary:hover {
-  background: rgba(255, 255, 255, 0.24);
-}
-
-.btnOutline {
-  background: white;
-  color: #4e7e5d;
-  border: 1px solid #bfd8c1;
-}
-
-.btnOutline:hover {
-  background: #f6faf7;
-}
-
 .panels {
   display: flex;
   flex-direction: column;
@@ -158,6 +115,7 @@
   border-radius: 24px;
   background: white;
   box-shadow: 0 6px 18px rgba(78, 126, 93, 0.05);
+  overflow: hidden;
 }
 
 .panelHeader {
@@ -181,13 +139,27 @@
 
 .panelArrow {
   display: inline-flex;
-  color: #188fa6;
+  color: #3a7d74;
 }
 
 .panelTitle {
   font-size: 1.03rem;
   font-weight: 700;
-  color: #19343d;
+  color: #2e3a32;
+}
+
+.panelContent {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.28s ease,
+    opacity 0.2s ease;
+}
+
+.panelContentOpen {
+  max-height: 1200px;
+  opacity: 1;
 }
 
 .panelBody {
@@ -243,7 +215,8 @@
 }
 
 .inputGroup input,
-.inputGroup textarea {
+.inputGroup textarea,
+.inputGroup select {
   width: 100%;
   border: 1px solid #d4e8ec;
   border-radius: 16px;
@@ -257,7 +230,8 @@
 }
 
 .inputGroup input:focus,
-.inputGroup textarea:focus {
+.inputGroup textarea:focus,
+.inputGroup select:focus {
   border-color: #4e7e5d;
   box-shadow: 0 0 0 3px rgba(78, 126, 93, 0.15);
 }
@@ -282,16 +256,16 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  border: 1px solid #dfeff2;
+  border: 1px solid #dfe7e0;
   border-radius: 18px;
-  background: #f9fcfd;
+  background: #f7faf6;
   padding: 16px;
 }
 
 .toggleTitle {
   font-size: 0.96rem;
   font-weight: 700;
-  color: #193741;
+  color: #2e3a32;
 }
 
 .toggleText {
@@ -300,17 +274,41 @@
   font-size: 0.88rem;
 }
 
+.switchBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.switchStateText {
+  min-width: 62px;
+  text-align: right;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #2e3a32;
+}
+
 .switch {
   position: relative;
   width: 52px;
   height: 30px;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
+}
+
+.switch input:disabled + .slider {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.switch input:not(:disabled) + .slider {
+  cursor: pointer;
 }
 
 .slider {
@@ -397,6 +395,8 @@
   border-radius: 14px;
   padding: 10px 12px;
   background: white;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dayName {
@@ -413,8 +413,8 @@
 }
 
 .phoneList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 14px;
 }
 
@@ -474,6 +474,20 @@
   font-weight: 500;
 }
 
+.phoneAddRow {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.phoneAddRow .linkButton {
+  width: auto;
+  min-height: auto;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border-radius: 999px;
+}
+
 .iconBtn {
   width: 36px;
   height: 36px;
@@ -492,22 +506,89 @@
   color: #244852;
 }
 
-.guildFile {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #1c3942;
+.disabledInput {
+  background: #f2f4f2 !important;
+  color: #7a8a81 !important;
+  cursor: not-allowed;
 }
 
-.guildPath {
-  word-break: break-all;
+.logoutButton,
+.primaryButton,
+.secondaryButton,
+.linkButton {
+  cursor: pointer;
+  border: none;
+}
+
+.logoutButton,
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #4e7e5d;
+  color: white;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 600;
+}
+
+.logoutButton:hover,
+.primaryButton:hover {
+  background: #3e6a4e;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #4e7e5d;
+  border: 1px solid #bfd8c1;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 600;
+}
+
+.linkButton:hover {
+  background: #f6faf7;
+}
+
+.footerActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.errorBox {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid #e7b4bb;
+  background: #fde8ea;
+  color: #a33a44;
+  border-radius: 16px;
 }
 
 @media (max-width: 1100px) {
   .container {
     margin-left: 0;
     width: 100%;
-    padding: 20px 14px;
+    padding: 88px 14px 20px;
   }
 }
 
@@ -550,5 +631,11 @@
 
   .panelBody {
     padding: 0 14px 14px;
+  }
+}
+
+@media (min-width: 900px) {
+  .phoneList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
