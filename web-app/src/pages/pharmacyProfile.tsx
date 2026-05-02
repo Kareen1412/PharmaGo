@@ -5,6 +5,10 @@ import { auth } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import {
+  LEBANON_REGIONS,
+  REGION_CITIES,
+} from "../../../shared/constants/lebanonLocations";
+import {
   ChevronDown,
   ChevronRight,
   Edit3,
@@ -52,30 +56,6 @@ const days: Array<keyof OperatingHours> = [
   "saturday",
   "sunday",
 ];
-
-const regionOptions = [
-  "Beirut",
-  "Mount Lebanon",
-  "North",
-  "Akkar",
-  "Bekaa",
-  "Baalbek-Hermel",
-  "South",
-  "Nabatieh",
-];
-
-const cityOptions = [
-  "Hamra",
-  "Achrafieh",
-  "Verdun",
-  "Jounieh",
-  "Tripoli",
-  "Sidon",
-  "Tyre",
-  "Zahle",
-];
-
-
 
 function formatTimestamp(value: number | null) {
   if (!value) return "—";
@@ -143,7 +123,6 @@ function Panel({
   );
 }
 
-
 function normalizePhoneNumber(value: string) {
   return value.trim().replace(/[\s()-]/g, "");
 }
@@ -163,7 +142,21 @@ function cleanPhones(phones: PharmacyPhone[]) {
     .filter((phone) => phone.phoneNumber !== "");
 }
 
+function isValidLatitude(value: number | null) {
+  return value === null || (value >= -90 && value <= 90);
+}
 
+function isValidLongitude(value: number | null) {
+  return value === null || (value >= -180 && value <= 180);
+}
+
+function parseOptionalNumber(value: string) {
+  if (value.trim() === "") {
+    return null;
+  }
+
+  return Number(value);
+}
 
 export default function PharmacyProfilePage() {
   const navigate = useNavigate();
@@ -225,7 +218,7 @@ export default function PharmacyProfilePage() {
   }, []);
 
   const canToggleActivity =
-  pharmacy?.verificationStatus?.toLowerCase() === "verified";
+    pharmacy?.verificationStatus?.toLowerCase() === "verified";
 
   const togglePanel = (key: PanelKey) => {
     setOpenPanels((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -240,6 +233,7 @@ export default function PharmacyProfilePage() {
     if (!pharmacy) return;
     setDraft(pharmacy);
     setDraftPhones(phones);
+    setError(null);
     setIsEditing(true);
   };
 
@@ -247,55 +241,68 @@ export default function PharmacyProfilePage() {
     if (!pharmacy) return;
     setDraft(pharmacy);
     setDraftPhones(phones);
+    setError(null);
     setIsEditing(false);
   };
 
   const saveChanges = async () => {
-  if (!draft || !pharmacy) return;
+    if (!draft || !pharmacy) return;
 
-  const cleanedPharmacyNameEnglish = draft.pharmacyNameEnglish?.trim() ?? "";
+    const cleanedPharmacyNameEnglish = draft.pharmacyNameEnglish?.trim() ?? "";
 
-  if (!cleanedPharmacyNameEnglish) {
-    setError("Pharmacy name in English is required.");
-    setOpenPanels((prev) => ({...prev, general: true}));
-    return;
-  }
+    if (!cleanedPharmacyNameEnglish) {
+      setError("Pharmacy name in English is required.");
+      setOpenPanels((prev) => ({ ...prev, general: true }));
+      return;
+    }
 
-  const cleanedPhones = cleanPhones(draftPhones);
-  const invalidPhone = cleanedPhones.find(
-    (phone) => !isValidPhoneNumber(phone.phoneNumber)
-  );
+    if (!isValidLatitude(draft.address.mapLat)) {
+      setError("Latitude must be between -90 and 90.");
+      setOpenPanels((prev) => ({ ...prev, address: true }));
+      return;
+    }
 
-  if (invalidPhone) {
-    setError(
-      "Please enter a valid phone number. Example: +961 76 123 456 or 03 123 456."
+    if (!isValidLongitude(draft.address.mapLng)) {
+      setError("Longitude must be between -180 and 180.");
+      setOpenPanels((prev) => ({ ...prev, address: true }));
+      return;
+    }
+
+    const cleanedPhones = cleanPhones(draftPhones);
+    const invalidPhone = cleanedPhones.find(
+      (phone) => !isValidPhoneNumber(phone.phoneNumber)
     );
-    return;
-  }
 
-  try {
-    setSaving(true);
-    setError(null);
+    if (invalidPhone) {
+      setError(
+        "Please enter a valid phone number. Example: +961 76 123 456 or 03 123 456."
+      );
+      return;
+    }
 
-    await savePharmacyProfile({
-      pharmacyNameEnglish: cleanedPharmacyNameEnglish,
-      pharmacyNameArabic: draft.pharmacyNameArabic,
-      ownerName: draft.ownerName,
-      isActive: pharmacy.isActive,
-      address: draft.address,
-      is24Hours: draft.is24Hours,
-      operatingHours: draft.operatingHours,
-      phones: cleanedPhones,
-    });
+    try {
+      setSaving(true);
+      setError(null);
 
-    setDraftPhones(cleanedPhones);
-    setIsEditing(false);
-  } catch (err) {
-    setError(err instanceof Error ? err.message : "Failed to save profile.");
-  } finally {
-    setSaving(false);
-  }
-};
+      await savePharmacyProfile({
+        pharmacyNameEnglish: cleanedPharmacyNameEnglish,
+        pharmacyNameArabic: draft.pharmacyNameArabic,
+        ownerName: draft.ownerName,
+        isActive: pharmacy.isActive,
+        address: draft.address,
+        is24Hours: draft.is24Hours,
+        operatingHours: draft.operatingHours,
+        phones: cleanedPhones,
+      });
+
+      setDraftPhones(cleanedPhones);
+      setIsEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleActivityToggle = async (checked: boolean) => {
     if (!pharmacy) return;
@@ -419,8 +426,15 @@ export default function PharmacyProfilePage() {
 
   const safeDraft = draft ?? pharmacy;
   const safePhones = isEditing ? draftPhones : phones;
+
   const isEnglishNameEmpty =
-  isEditing && (safeDraft.pharmacyNameEnglish ?? "").trim() === "";
+    isEditing && (safeDraft.pharmacyNameEnglish ?? "").trim() === "";
+
+  const isLatitudeInvalid =
+    isEditing && !isValidLatitude(safeDraft.address.mapLat);
+
+  const isLongitudeInvalid =
+    isEditing && !isValidLongitude(safeDraft.address.mapLng);
 
   return (
     <div className={styles.page}>
@@ -596,6 +610,14 @@ export default function PharmacyProfilePage() {
                 <Field label="City" value={pharmacy.address.city} />
                 <Field label="Street" value={pharmacy.address.street} />
                 <Field
+                  label="Latitude"
+                  value={pharmacy.address.mapLat}
+                />
+                <Field
+                  label="Longitude"
+                  value={pharmacy.address.mapLng}
+                />
+                <Field
                   label="Additional details"
                   value={pharmacy.address.additionalDetails}
                 />
@@ -623,15 +645,16 @@ export default function PharmacyProfilePage() {
                   <label>Region</label>
                   <select
                     value={safeDraft.address.region ?? ""}
-                    onChange={(e) =>
-                      updateAddressField(
-                        "region",
-                        e.target.value === "" ? null : e.target.value
-                      )
-                    }
+                    onChange={(e) => {
+                      const region =
+                        e.target.value === "" ? null : e.target.value;
+
+                      updateAddressField("region", region);
+                      updateAddressField("city", null);
+                    }}
                   >
                     <option value="">Select region</option>
-                    {regionOptions.map((region) => (
+                    {LEBANON_REGIONS.map((region) => (
                       <option key={region} value={region}>
                         {region}
                       </option>
@@ -649,13 +672,22 @@ export default function PharmacyProfilePage() {
                         e.target.value === "" ? null : e.target.value
                       )
                     }
+                    disabled={!safeDraft.address.region}
                   >
-                    <option value="">Select city</option>
-                    {cityOptions.map((city) => (
-                      <option key={city} value={city}>
-                        {city}
-                      </option>
-                    ))}
+                    <option value="">
+                      {safeDraft.address.region
+                        ? "Select city"
+                        : "Select region first"}
+                    </option>
+
+                    {safeDraft.address.region &&
+                      REGION_CITIES[
+                        safeDraft.address.region as keyof typeof REGION_CITIES
+                      ]?.map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -674,10 +706,11 @@ export default function PharmacyProfilePage() {
                 </div>
 
                 <div className={`${styles.inputGroup} ${styles.span2}`}>
-                  <label>Location URL</label>
+                  <label>Full Google Maps URL</label>
                   <input
                     type="url"
                     value={safeDraft.address.locationUrl ?? ""}
+                    placeholder="Paste the Google Maps link for your pharmacy"
                     onChange={(e) =>
                       updateAddressField(
                         "locationUrl",
@@ -685,6 +718,63 @@ export default function PharmacyProfilePage() {
                       )
                     }
                   />
+                </div>
+
+                <div className={`${styles.inputGroup} ${styles.span2}`}>
+                  <p className={styles.helperNote}>
+                    Optional: adding map coordinates helps your pharmacy appear
+                    when users search for nearby pharmacies. To get them, open
+                    Google Maps, right-click your pharmacy location, then copy
+                    the latitude and longitude values.
+                  </p>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label>Latitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="-90"
+                    max="90"
+                    placeholder="33.894261602190255"
+                    value={safeDraft.address.mapLat ?? ""}
+                    className={isLatitudeInvalid ? styles.inputError : ""}
+                    onChange={(e) =>
+                      updateAddressField(
+                        "mapLat",
+                        parseOptionalNumber(e.target.value)
+                      )
+                    }
+                  />
+                  {isLatitudeInvalid && (
+                    <p className={styles.fieldError}>
+                      Latitude must be between -90 and 90.
+                    </p>
+                  )}
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label>Longitude</label>
+                  <input
+                    type="number"
+                    step="any"
+                    min="-180"
+                    max="180"
+                    placeholder="35.477498178207405"
+                    value={safeDraft.address.mapLng ?? ""}
+                    className={isLongitudeInvalid ? styles.inputError : ""}
+                    onChange={(e) =>
+                      updateAddressField(
+                        "mapLng",
+                        parseOptionalNumber(e.target.value)
+                      )
+                    }
+                  />
+                  {isLongitudeInvalid && (
+                    <p className={styles.fieldError}>
+                      Longitude must be between -180 and 180.
+                    </p>
+                  )}
                 </div>
 
                 <div className={`${styles.inputGroup} ${styles.span2}`}>
@@ -746,6 +836,7 @@ export default function PharmacyProfilePage() {
                   <div className={`${styles.hoursList} ${styles.editHoursList}`}>
                     {days.map((day) => {
                       const schedule = safeDraft.operatingHours[day];
+
                       return (
                         <div className={styles.hoursEditRow} key={day}>
                           <div className={styles.dayName}>{dayLabels[day]}</div>
@@ -757,7 +848,8 @@ export default function PharmacyProfilePage() {
                             required={!schedule.isClosed}
                             onChange={(e) =>
                               updateDay(day, {
-                                open: e.target.value === "" ? null : e.target.value,
+                                open:
+                                  e.target.value === "" ? null : e.target.value,
                               })
                             }
                           />
@@ -769,7 +861,8 @@ export default function PharmacyProfilePage() {
                             required={!schedule.isClosed}
                             onChange={(e) =>
                               updateDay(day, {
-                                close: e.target.value === "" ? null : e.target.value,
+                                close:
+                                  e.target.value === "" ? null : e.target.value,
                               })
                             }
                           />
@@ -782,7 +875,9 @@ export default function PharmacyProfilePage() {
                                 updateDay(day, {
                                   isClosed: e.target.checked,
                                   open: e.target.checked ? null : schedule.open,
-                                  close: e.target.checked ? null : schedule.close,
+                                  close: e.target.checked
+                                    ? null
+                                    : schedule.close,
                                 })
                               }
                             />
@@ -902,15 +997,15 @@ export default function PharmacyProfilePage() {
                 ))}
 
                 <div className={styles.phoneAddRow}>
-                <button
-                  type="button"
-                  className={styles.linkButton}
-                  onClick={addPhone}
-                >
-                  <Plus size={16} />
-                  Add another phone number
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    className={styles.linkButton}
+                    onClick={addPhone}
+                  >
+                    <Plus size={16} />
+                    Add another phone number
+                  </button>
+                </div>
               </div>
             )}
           </Panel>
@@ -935,20 +1030,22 @@ export default function PharmacyProfilePage() {
                       : "Account activity can only be changed after verification is approved."}
                   </div>
                 </div>
+
                 <div className={styles.switchBlock}>
-  <span className={styles.switchStateText}>
-    {pharmacy.isActive ? "Active" : "Inactive"}
-  </span>
-                <label className={styles.switch}>
-                  <input
-                    type="checkbox"
-                    checked={pharmacy.isActive}
-                    disabled={!canToggleActivity || saving}
-                    onChange={(e) => handleActivityToggle(e.target.checked)}
-                  />
-                  <span className={styles.slider} />
-                </label>
-              </div></div>
+                  <span className={styles.switchStateText}>
+                    {pharmacy.isActive ? "Active" : "Inactive"}
+                  </span>
+                  <label className={styles.switch}>
+                    <input
+                      type="checkbox"
+                      checked={pharmacy.isActive}
+                      disabled={!canToggleActivity || saving}
+                      onChange={(e) => handleActivityToggle(e.target.checked)}
+                    />
+                    <span className={styles.slider} />
+                  </label>
+                </div>
+              </div>
 
               <Field
                 label="Suspension reason"

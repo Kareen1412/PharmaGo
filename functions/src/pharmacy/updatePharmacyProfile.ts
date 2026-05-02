@@ -79,6 +79,26 @@ function validateAddress(address: unknown): asserts address is PharmacyAddress {
       "address.mapLng must be a number or null."
     );
   }
+
+  if (
+    typed.mapLat !== null &&
+    (typed.mapLat < -90 || typed.mapLat > 90)
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      "address.mapLat must be between -90 and 90."
+    );
+  }
+
+  if (
+    typed.mapLng !== null &&
+    (typed.mapLng < -180 || typed.mapLng > 180)
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      "address.mapLng must be between -180 and 180."
+    );
+  }
 }
 
 /**
@@ -200,6 +220,19 @@ export const updatePharmacyProfile = onCall(
     validateOperatingHours(data.operatingHours);
     validatePhones(data.phones);
 
+    const cleanedLocationUrl = data.address.locationUrl?.trim() || null;
+
+    const cleanedAddress: PharmacyAddress = {
+      ...data.address,
+      region: data.address.region?.trim() || null,
+      city: data.address.city?.trim() || null,
+      street: data.address.street?.trim() || null,
+      locationUrl: cleanedLocationUrl,
+      additionalDetails: data.address.additionalDetails?.trim() || null,
+      mapLat: data.address.mapLat,
+      mapLng: data.address.mapLng,
+    };
+
     const db = admin.firestore();
     const pharmacyRef = db.collection("pharmacies").doc(uid);
     const phonesCollectionRef = pharmacyRef.collection("phones");
@@ -231,7 +264,7 @@ export const updatePharmacyProfile = onCall(
         pharmacyNameArabic: data.pharmacyNameArabic,
         ownerName: data.ownerName,
         isActive: data.isActive,
-        address: data.address,
+        address: cleanedAddress,
         is24Hours: data.is24Hours,
         operatingHours: data.operatingHours,
         updatedAt: now,
