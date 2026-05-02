@@ -7,7 +7,17 @@ const createPharmacyProfile = httpsCallable(
   "createPharmacyProfile"
 );
 
-export const signUpPharmacy = async (email: string, password: string) => {
+export const signUpPharmacy = async (
+  pharmacyNameEnglish: string,
+  email: string,
+  password: string
+) => {
+  const cleanedPharmacyName = pharmacyNameEnglish.trim();
+
+  if (!cleanedPharmacyName) {
+    throw new Error("Pharmacy name in English is required.");
+  }
+
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -15,7 +25,10 @@ export const signUpPharmacy = async (email: string, password: string) => {
   );
 
   try {
-    await createPharmacyProfile({});
+    await createPharmacyProfile({
+      pharmacyNameEnglish: cleanedPharmacyName,
+    });
+
     return userCredential.user;
   } catch (error) {
     console.error("Failed to create pharmacy profile:", error);

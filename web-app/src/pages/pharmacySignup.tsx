@@ -10,6 +10,7 @@ export default function PharmacySignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [pharmacyNameEnglish, setPharmacyNameEnglish] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -31,6 +32,13 @@ export default function PharmacySignupPage() {
     e.preventDefault();
     setError("");
 
+    const cleanedPharmacyName = pharmacyNameEnglish.trim();
+
+    if (!cleanedPharmacyName) {
+      setError("Pharmacy name in English is required.");
+      return;
+    }
+
     if (!isPasswordValid(password)) {
       setError(
         "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, and a number."
@@ -46,7 +54,7 @@ export default function PharmacySignupPage() {
     setLoading(true);
 
     try {
-      await signUpPharmacy(email, password);
+      await signUpPharmacy(cleanedPharmacyName, email, password);
       setShowSuccessPopup(true);
     } catch (err: any) {
       console.error("Pharmacy signup failed:", err);
@@ -74,6 +82,18 @@ export default function PharmacySignupPage() {
 
           <div className={styles.authCardBody}>
             <form className={styles.authForm} onSubmit={handleSignup}>
+
+              <div className={styles.authField}>
+                <label htmlFor="pharmacyNameEnglish">Pharmacy name</label>
+                <input
+                  id="pharmacyNameEnglish"
+                  type="text"
+                  placeholder="Enter pharmacy name"
+                  value={pharmacyNameEnglish}
+                  onChange={(e) => setPharmacyNameEnglish(e.target.value)}
+                  required
+                />
+              </div>
               <div className={styles.authField}>
                 <label htmlFor="email">Email</label>
                 <input

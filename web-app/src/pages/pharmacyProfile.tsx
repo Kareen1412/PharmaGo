@@ -75,44 +75,7 @@ const cityOptions = [
   "Zahle",
 ];
 
-const emptyOperatingHours: OperatingHours = {
-  monday: { open: null, close: null, isClosed: true },
-  tuesday: { open: null, close: null, isClosed: true },
-  wednesday: { open: null, close: null, isClosed: true },
-  thursday: { open: null, close: null, isClosed: true },
-  friday: { open: null, close: null, isClosed: true },
-  saturday: { open: null, close: null, isClosed: true },
-  sunday: { open: null, close: null, isClosed: true },
-};
 
-const emptyAddress: PharmacyAddress = {
-  region: null,
-  city: null,
-  street: null,
-  mapLat: null,
-  mapLng: null,
-  locationUrl: null,
-  additionalDetails: null,
-};
-
-const emptyPharmacy: Pharmacy = {
-  id: "",
-  pharmacyNameEnglish: null,
-  pharmacyNameArabic: null,
-  verificationStatus: "unverified",
-  ownerName: null,
-  email: "",
-  createdAt: 0,
-  verifiedAt: null,
-  isActive: false,
-  address: emptyAddress,
-  suspensionReason: null,
-  reportCount: 0,
-  is24Hours: false,
-  operatingHours: emptyOperatingHours,
-  updatedAt: null,
-  latestVerificationRequestId: null,
-};
 
 function formatTimestamp(value: number | null) {
   if (!value) return "—";
@@ -290,6 +253,14 @@ export default function PharmacyProfilePage() {
   const saveChanges = async () => {
   if (!draft || !pharmacy) return;
 
+  const cleanedPharmacyNameEnglish = draft.pharmacyNameEnglish?.trim() ?? "";
+
+  if (!cleanedPharmacyNameEnglish) {
+    setError("Pharmacy name in English is required.");
+    setOpenPanels((prev) => ({...prev, general: true}));
+    return;
+  }
+
   const cleanedPhones = cleanPhones(draftPhones);
   const invalidPhone = cleanedPhones.find(
     (phone) => !isValidPhoneNumber(phone.phoneNumber)
@@ -307,7 +278,7 @@ export default function PharmacyProfilePage() {
     setError(null);
 
     await savePharmacyProfile({
-      pharmacyNameEnglish: draft.pharmacyNameEnglish,
+      pharmacyNameEnglish: cleanedPharmacyNameEnglish,
       pharmacyNameArabic: draft.pharmacyNameArabic,
       ownerName: draft.ownerName,
       isActive: pharmacy.isActive,
@@ -448,6 +419,8 @@ export default function PharmacyProfilePage() {
 
   const safeDraft = draft ?? pharmacy;
   const safePhones = isEditing ? draftPhones : phones;
+  const isEnglishNameEmpty =
+  isEditing && (safeDraft.pharmacyNameEnglish ?? "").trim() === "";
 
   return (
     <div className={styles.page}>
@@ -558,13 +531,16 @@ export default function PharmacyProfilePage() {
                   <input
                     type="text"
                     value={safeDraft.pharmacyNameEnglish ?? ""}
+                    className={isEnglishNameEmpty ? styles.inputError : ""}
                     onChange={(e) =>
-                      updateField(
-                        "pharmacyNameEnglish",
-                        e.target.value.trim() === "" ? null : e.target.value
-                      )
+                      updateField("pharmacyNameEnglish", e.target.value)
                     }
                   />
+                  {isEnglishNameEmpty && (
+                    <p className={styles.fieldError}>
+                      Pharmacy name in English is required.
+                    </p>
+                  )}
                 </div>
 
                 <div className={styles.inputGroup}>

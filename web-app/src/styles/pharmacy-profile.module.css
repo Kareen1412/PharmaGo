@@ -537,6 +537,18 @@
   background: #3e6a4e;
 }
 
+.inputError {
+  border-color: #c94a4a !important;
+  background: #fffafa !important;
+}
+
+.fieldError {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #a33a44;
+  font-weight: 600;
+}
+
 .secondaryButton {
   display: inline-flex;
   align-items: center;

@@ -17,6 +17,21 @@ export const createPharmacyProfile = onCall(
     const email = request.auth.token.email ?? "";
     const now = Date.now();
 
+    const pharmacyNameEnglish = request.data?.pharmacyNameEnglish;
+
+    if (
+      !pharmacyNameEnglish ||
+      typeof pharmacyNameEnglish !== "string" ||
+      !pharmacyNameEnglish.trim()
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Pharmacy name in English is required."
+      );
+    }
+
+    const cleanedPharmacyNameEnglish = pharmacyNameEnglish.trim();
+
     const db = admin.firestore();
 
     const accountRef = db.collection("accounts").doc(uid);
@@ -40,7 +55,7 @@ export const createPharmacyProfile = onCall(
 
       const pharmacyData: Pharmacy = {
         id: uid,
-        pharmacyNameEnglish: null,
+        pharmacyNameEnglish: cleanedPharmacyNameEnglish,
         pharmacyNameArabic: null,
         verificationStatus: "unverified",
         latestVerificationRequestId: null,
