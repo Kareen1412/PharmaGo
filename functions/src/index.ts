@@ -10,3 +10,6 @@ export {processPharmacyVerification} from
   "./pharmacy/processPharmacyVerification";
 export {submitPharmacyVerification} from
   "./pharmacy/submitPharmacyVerification";
+export {updatePharmacyProfile} from
+  "./pharmacy/updatePharmacyProfile";
+export {createUserProfile} from "./app-users/createUserProfile";
