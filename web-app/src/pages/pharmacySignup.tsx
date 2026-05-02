@@ -9,11 +9,9 @@ export default function PharmacySignupPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [pharmacyNameEnglish, setPharmacyNameEnglish] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,10 +44,7 @@ export default function PharmacySignupPage() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+    
 
     setLoading(true);
 
@@ -95,7 +90,7 @@ export default function PharmacySignupPage() {
                 />
               </div>
               <div className={styles.authField}>
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">Pharmacy email</label>
                 <input
                   id="email"
                   type="email"
@@ -132,34 +127,7 @@ export default function PharmacySignupPage() {
                 
               </div>
 
-              <div className={styles.authField}>
-                <label htmlFor="confirmPassword">Confirm Password</label>
-
-                <div className={styles.passwordWrapper}>
-                  <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className={styles.passwordToggle}
-                    onClick={() =>
-                      setShowConfirmPassword((prev) => !prev)
-                    }
-                    aria-label={
-                      showConfirmPassword
-                        ? "Hide confirm password"
-                        : "Show confirm password"
-                    }
-                  >
-                    {showConfirmPassword ? <FiEyeOff/> : <FiEye/>}
-                  </button>
-                </div>
-              </div>
+              
 
               {error && <p className={styles.errorText}>{error}</p>}
 
