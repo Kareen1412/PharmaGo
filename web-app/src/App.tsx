@@ -1,43 +1,33 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import PharmacySignupPage from "./pages/pharmacySignup";
 import PharmacyLoginPage from "./pages/pharmacyLogin";
 import PharmacyDashboardPage from "./pages/pharmacyDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PharmacyVerificationPage from "./pages/pharmacyVerification";
 import PharmacyProfilePage from "./pages/pharmacyProfile";
+import PharmacyLayout from "./components/PharmacyLayout";
 
 function App() {
   return (
-    
-      <Routes>
-        <Route path="/signup" element={<PharmacySignupPage />} />
-        <Route path="/login" element={<PharmacyLoginPage />} />
-        <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <PharmacyDashboardPage />
-          </ProtectedRoute>
-        }
-      />
+    <Routes>
+      <Route path="/signup" element={<PharmacySignupPage />} />
+      <Route path="/login" element={<PharmacyLoginPage />} />
       <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <PharmacyProfilePage />
-          </ProtectedRoute>
-        }
-      />
+          path="/dashboard/verification"
+          element={<PharmacyVerificationPage />}
+        />
       <Route
-        path="/dashboard/verification"
         element={
           <ProtectedRoute>
-            <PharmacyVerificationPage />
+            <PharmacyLayout />
           </ProtectedRoute>
         }
-      />
-      </Routes>
-  
+      >
+        <Route path="/" element={<PharmacyDashboardPage />} />
+        <Route path="/profile" element={<PharmacyProfilePage />} />
+        
+      </Route>
+    </Routes>
   );
 }
 

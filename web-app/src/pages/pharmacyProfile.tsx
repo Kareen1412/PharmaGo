@@ -399,11 +399,7 @@ export default function PharmacyProfilePage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <PharmacySidebar
-          pharmacyName={null}
-          email={null}
-          activeItem="profile"
-        />
+        
         <div className={styles.container}>Loading profile...</div>
       </div>
     );
@@ -412,11 +408,7 @@ export default function PharmacyProfilePage() {
   if (!pharmacy) {
     return (
       <div className={styles.page}>
-        <PharmacySidebar
-          pharmacyName={null}
-          email={null}
-          activeItem="profile"
-        />
+        
         <div className={styles.container}>
           {error || "Pharmacy profile not found."}
         </div>
@@ -438,11 +430,7 @@ export default function PharmacyProfilePage() {
 
   return (
     <div className={styles.page}>
-      <PharmacySidebar
-        pharmacyName={pharmacy.pharmacyNameEnglish}
-        email={pharmacy.email}
-        activeItem="profile"
-      />
+     
 
       <div className={styles.container}>
         {error && <div className={styles.errorBox}>{error}</div>}

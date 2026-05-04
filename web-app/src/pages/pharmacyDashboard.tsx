@@ -134,11 +134,7 @@ export default function PharmacyDashboardPage() {
 
   return (
     <div className={styles.dashboardLayout}>
-      <PharmacySidebar
-        pharmacyName={pharmacy.pharmacyNameEnglish}
-        email={pharmacy.email}
-        activeItem="dashboard"
-      />
+      
 
       <main className={styles.mainContent}>
         <header className={styles.topHeader}>

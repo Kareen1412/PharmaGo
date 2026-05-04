@@ -26,7 +26,7 @@ export default function PharmacyLoginPage() {
 
   useEffect(() => {
   if (!authLoading && user) {
-    navigate("/pharmacyDashboard");
+    navigate("/", { replace: true });
   }
 }, [user, authLoading, navigate]);
 

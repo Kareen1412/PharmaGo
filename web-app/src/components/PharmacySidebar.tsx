@@ -1,22 +1,68 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { doc, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../config/firebase";
 import styles from "../styles/pharmacy-dashboard.module.css";
 import logo from "../assets/images/logo.png";
 
-type PharmacySidebarProps = {
-  pharmacyName?: string | null;
-  email: string | null;
-  activeItem: "dashboard" | "profile" | "requests" | "questions" | "settings";
-};
-
-export default function PharmacySidebar({
-  pharmacyName,
-  email,
-  activeItem,
-}: PharmacySidebarProps) {
+export default function PharmacySidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [pharmacyName, setPharmacyName] = useState("");
+  const [email, setEmail] = useState("");
+  const [loadingProfile, setLoadingProfile] = useState(true);
+
+  useEffect(() => {
+    let unsubscribePharmacy: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      unsubscribePharmacy?.();
+
+      if (!user) {
+        setPharmacyName("");
+        setEmail("");
+        setLoadingProfile(false);
+        return;
+      }
+
+      setEmail(user.email ?? "");
+
+      const pharmacyRef = doc(db, "pharmacies", user.uid);
+
+      unsubscribePharmacy = onSnapshot(
+        pharmacyRef,
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            setPharmacyName("");
+            setEmail(user.email ?? "");
+            setLoadingProfile(false);
+            return;
+          }
+
+          const data = snapshot.data();
+
+          setPharmacyName(data.pharmacyNameEnglish ?? "");
+          setEmail(data.email ?? user.email ?? "");
+          setLoadingProfile(false);
+        },
+        (error) => {
+          console.error("SIDEBAR PHARMACY SNAPSHOT ERROR:", error);
+          setPharmacyName("");
+          setEmail(user.email ?? "");
+          setLoadingProfile(false);
+        }
+      );
+    });
+
+    return () => {
+      unsubscribePharmacy?.();
+      unsubscribeAuth();
+    };
+  }, []);
 
   const navItems = [
     { key: "dashboard", label: "Dashboard", path: "/" },
@@ -26,8 +72,23 @@ export default function PharmacySidebar({
     { key: "settings", label: "Settings", path: "/pharmacy/settings" },
   ] as const;
 
+  const getActiveItem = () => {
+    if (location.pathname === "/") return "dashboard";
+    if (location.pathname.startsWith("/profile")) return "profile";
+    if (location.pathname.startsWith("/pharmacy/requests")) return "requests";
+    if (location.pathname.startsWith("/pharmacy/questions")) return "questions";
+    if (location.pathname.startsWith("/pharmacy/settings")) return "settings";
+
+    return "dashboard";
+  };
+
+  const activeItem = getActiveItem();
+
   const handleNavigate = (path: string) => {
-    navigate(path);
+    if (location.pathname !== path) {
+      navigate(path);
+    }
+
     setIsMobileOpen(false);
   };
 
@@ -35,11 +96,7 @@ export default function PharmacySidebar({
     <>
       <header className={styles.mobileNavbar}>
         <div className={styles.mobileBrand}>
-          <img
-            src={logo}
-            alt="PharmaGo logo"
-            className={styles.mobileLogo}
-          />
+          <img src={logo} alt="PharmaGo logo" className={styles.mobileLogo} />
           <span>PharmaGo</span>
         </div>
 
@@ -72,10 +129,9 @@ export default function PharmacySidebar({
             <div className={styles.mobileSidebarHeader}>
               <div>
                 <div className={styles.sidebarBrandRow}>
-                 
-                  <h2>{pharmacyName || "PharmaGo"}</h2>
+                  <h2>{loadingProfile ? "" : pharmacyName}</h2>
                 </div>
-                <p>{email || "No email"}</p>
+                <p>{loadingProfile ? "" : email}</p>
               </div>
 
               <button
@@ -96,6 +152,7 @@ export default function PharmacySidebar({
               return (
                 <button
                   key={item.key}
+                  type="button"
                   className={`${styles.navItem} ${
                     isActive ? styles.activeNavItem : ""
                   }`}
