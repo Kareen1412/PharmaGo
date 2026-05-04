@@ -45,7 +45,21 @@ const cardWidth = width >= 768 ? width * 0.7 : "100%";
     return hasMinLength && hasUppercase && hasLowercase && hasNumber;
   };
 
+  const clearFocusBeforeNavigate = (screen: "Login" | "Signup") => {
+  Keyboard.dismiss();
+
+  if (Platform.OS === "web") {
+    const activeElement = document.activeElement as HTMLElement | null;
+    activeElement?.blur();
+  }
+
+  setTimeout(() => {
+    navigation.navigate(screen);
+  }, 0);
+};
+
   const handleSignup = async () => {
+    Keyboard.dismiss();
     setError("");
 
     const cleanName = name.trim();
@@ -89,16 +103,20 @@ const cardWidth = width >= 768 ? width * 0.7 : "100%";
           <Image
             source={require("../assets/images/logo.png")}
             style={authStyles.logoImage}
+            resizeMode="contain"
           />
           <Text style={authStyles.brandTitle}>PharmaGo</Text>
         </View>
 
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <ScrollView
-        contentContainerStyle={authStyles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+    <Pressable
+    style={{ flex: 1 }}
+    onPress={Platform.OS === "web" ? undefined : Keyboard.dismiss}
+  >
+    <ScrollView
+      contentContainerStyle={authStyles.scrollContent}
+      keyboardShouldPersistTaps="always"
+      showsVerticalScrollIndicator={false}
+    >
         
 
         <View style={[authStyles.card, { width: cardWidth, alignSelf: "center" }]}>
@@ -177,7 +195,7 @@ const cardWidth = width >= 768 ? width * 0.7 : "100%";
 
           <Pressable
             style={authStyles.secondaryButton}
-            onPress={() => navigation.navigate("Login")}
+            onPress={() => clearFocusBeforeNavigate("Login")}
           >
             <Text style={authStyles.secondaryButtonText}>
               Already have an account?{" "}
@@ -186,7 +204,7 @@ const cardWidth = width >= 768 ? width * 0.7 : "100%";
           </Pressable>
         </View>
       </ScrollView>
-    </TouchableWithoutFeedback>
+    </Pressable>
   </KeyboardAvoidingView>
 );
 }

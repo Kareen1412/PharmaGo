@@ -38,6 +38,7 @@ export default function LoginScreen({ navigation }: Props) {
 const cardWidth = width >= 768 ? width * 0.7 : "100%";
 
   const handleLogin = async () => {
+    Keyboard.dismiss();
     setError("");
     setMessage("");
 
@@ -58,6 +59,19 @@ const cardWidth = width >= 768 ? width * 0.7 : "100%";
       setLoading(false);
     }
   };
+
+  const clearFocusBeforeNavigate = (screen: "Login" | "Signup") => {
+  Keyboard.dismiss();
+
+  if (Platform.OS === "web") {
+    const activeElement = document.activeElement as HTMLElement | null;
+    activeElement?.blur();
+  }
+
+  setTimeout(() => {
+    navigation.navigate(screen);
+  }, 0);
+};
 
   const handleForgotPassword = async () => {
     setError("");
@@ -92,16 +106,20 @@ const cardWidth = width >= 768 ? width * 0.7 : "100%";
       <Image
         source={require("../assets/images/logo.png")}
         style={authStyles.logoImage}
+        resizeMode="contain"
       />
       <Text style={authStyles.brandTitle}>PharmaGo</Text>
     </View>
 
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <ScrollView
-        contentContainerStyle={authStyles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+    <Pressable
+    style={{ flex: 1 }}
+    onPress={Platform.OS === "web" ? undefined : Keyboard.dismiss}
+  >
+    <ScrollView
+      contentContainerStyle={authStyles.scrollContent}
+      keyboardShouldPersistTaps="always"
+      showsVerticalScrollIndicator={false}
+    >
         <View
           style={[
             authStyles.card,
@@ -188,7 +206,7 @@ const cardWidth = width >= 768 ? width * 0.7 : "100%";
 
           <Pressable
             style={authStyles.secondaryButton}
-            onPress={() => navigation.navigate("Signup")}
+            onPress={() => clearFocusBeforeNavigate("Signup")}
           >
             <Text style={authStyles.secondaryButtonText}>
               Don’t have an account?{" "}
@@ -199,7 +217,7 @@ const cardWidth = width >= 768 ? width * 0.7 : "100%";
           </Pressable>
         </View>
       </ScrollView>
-    </TouchableWithoutFeedback>
+     </Pressable>
   </KeyboardAvoidingView>
 );
 }

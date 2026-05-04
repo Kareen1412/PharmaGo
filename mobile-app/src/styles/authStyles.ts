@@ -38,7 +38,6 @@ topBar: {
     width: 40,
     height: 40,
     borderRadius: 999,
-    resizeMode: "contain",
   },
 
 scrollContent: {
@@ -61,10 +60,7 @@ scrollContent: {
   borderWidth: 1,
   borderColor: colors.borderSoft,
   padding: 22,
-  shadowColor: "#4e7e5d",
-  shadowOpacity: 0.1,
-  shadowRadius: 18,
-  shadowOffset: { width: 0, height: 8 },
+  boxShadow: "0px 8px 18px rgba(78, 126, 93, 0.1)",
   elevation: 4,
 },
 
