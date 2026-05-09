@@ -13,3 +13,4 @@ export {submitPharmacyVerification} from
 export {updatePharmacyProfile} from
   "./pharmacy/updatePharmacyProfile";
 export {createUserProfile} from "./app-users/createUserProfile";
+export {createMedicineRequest} from "./medicineRequests/createMedicineRequest";
