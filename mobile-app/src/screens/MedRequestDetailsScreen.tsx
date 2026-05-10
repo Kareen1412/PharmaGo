@@ -164,7 +164,9 @@ export default function MedRequestDetailsScreen() {
           onPress: async () => {
             try {
               await softDeleteMedicineRequest(currentRequest.id);
-              navigation.goBack();
+              navigation.navigate("MedRequests", {
+  initialTab: "active",
+});
             } catch {
               Alert.alert("Error", "Could not delete request.");
             }

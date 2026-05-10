@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import BottomNavbar from "../components/BottomNavbar";
@@ -20,13 +20,27 @@ import type { MedicineRequest } from "../../../shared/types/medRequest";
 import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
 import { medRequestsStyles as styles } from "../styles/medRequestsStyles";
 
+type RouteParams = {
+  initialTab?: "active" | "reserved";
+};
+
 export default function MedRequestsScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const params = route.params as RouteParams | undefined;
 
-  const [activeTab, setActiveTab] = useState<"active" | "reserved">("active");
+  const [activeTab, setActiveTab] = useState<"active" | "reserved">(
+    params?.initialTab ?? "active"
+  );
   const [requests, setRequests] = useState<MedicineRequest[]>([]);
   const [reservations, setReservations] = useState<MedicineReservation[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (params?.initialTab) {
+      setActiveTab(params.initialTab);
+    }
+  }, [params?.initialTab]);
 
   useEffect(() => {
     let activeDone = false;
@@ -134,7 +148,7 @@ export default function MedRequestsScreen() {
             requests={requests}
             onCreateRequest={goToCreateRequest}
             onOpenRequest={(request) =>
-              navigation.navigate("MedRequestDetails", {request})
+              navigation.navigate("MedRequestDetails", { request })
             }
           />
         ) : (
@@ -142,7 +156,7 @@ export default function MedRequestsScreen() {
             reservations={reservations}
             onCreateRequest={goToCreateRequest}
             onOpenReservation={(reservation) =>
-              navigation.navigate("ReservationDetails", {reservation})
+              navigation.navigate("ReservationDetails", { reservation })
             }
           />
         )}

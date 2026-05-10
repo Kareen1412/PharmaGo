@@ -828,3 +828,19 @@
   font-size: 13px;
   font-weight: 700;
 }
+
+.clearNotificationsButton {
+  width: 100%;
+  border: none;
+  background: #fff7f5;
+  color: #b42318;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  border-bottom: 1px solid #eef3ef;
+}
+
+.clearNotificationsButton:hover {
+  background: #ffe4df;
+}

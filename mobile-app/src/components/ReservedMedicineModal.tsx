@@ -15,6 +15,7 @@ import {
   renewMedicineReservation,
 } from "../services/medicineRequestService";
 import { medRequestsStyles as styles } from "../styles/medRequestsStyles";
+import { useNavigation } from "@react-navigation/native";
 
 type Props = {
   visible: boolean;
@@ -45,6 +46,8 @@ export default function ReserveMedicineModal({
   const [durationDays, setDurationDays] = useState<DurationDays>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const navigation = useNavigation<any>();
 
   if (!reply) return null;
 
@@ -88,16 +91,29 @@ export default function ReserveMedicineModal({
         });
       }
 
-      onReserved(reply.id);
+      
 
       Alert.alert(
-        isRenewMode ? "Reservation renewed" : "Reservation sent",
-        isRenewMode
-          ? "Your reservation is pending again. The pharmacy will confirm it and generate a new passcode."
-          : "Your reservation is pending. The pharmacy will generate a passcode after confirming it."
-      );
+  isRenewMode ? "Reservation renewed" : "Reservation sent",
+  isRenewMode
+    ? "Your reservation is pending again. The pharmacy will confirm it and generate a new passcode."
+    : "Your reservation is pending. The pharmacy will generate a passcode after confirming it.",
+  [
+    {
+      text: "OK",
+      onPress: () => {
+        onReserved(reply.id);
+        onClose();
 
-      onClose();
+        navigation.navigate("MedRequests", {
+          initialTab: "reserved",
+        });
+      },
+    },
+  ]
+);
+
+  
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not create reservation.";

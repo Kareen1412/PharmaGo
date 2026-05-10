@@ -5,6 +5,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "../config/firebase";
 import {
+  clearPharmacyNotifications,
   listenToPharmacyNotifications,
   markPharmacyNotificationAsRead,
 } from "../services/pharmacyNotificationService";
@@ -166,6 +167,15 @@ export default function PharmacySidebar() {
     }
   };
 
+  const handleClearNotifications = async () => {
+  try {
+    await clearPharmacyNotifications();
+    setNotificationsOpen(false);
+  } catch (error) {
+    console.error("Failed to clear notifications:", error);
+  }
+};
+
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/signin");
@@ -247,6 +257,15 @@ export default function PharmacySidebar() {
 
               {notificationsOpen && (
                 <div className={styles.notificationDropdown}>
+                  {notifications.length > 0 && (
+  <button
+    type="button"
+    className={styles.clearNotificationsButton}
+    onClick={handleClearNotifications}
+  >
+    Clear all
+  </button>
+)}
                   {notifications.length === 0 ? (
                     <div className={styles.notificationEmpty}>
                       No notifications yet.

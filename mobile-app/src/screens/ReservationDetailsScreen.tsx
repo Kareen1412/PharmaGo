@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
 import type { MedicineRequest } from "../../../shared/types/medRequest";
 import type { PharmacyMedicineRequestReply } from "../../../shared/types/pharmacyRequestReply";
-import ReserveMedicineModal from "../components/reservedMedicineModal";
+import ReserveMedicineModal from "../components/ReservedMedicineModal";
 import {
   cancelMedicineReservation,
   expireMedicineReservation,
@@ -169,7 +169,9 @@ export default function ReservationDetailsScreen() {
                   : "Your reservation was cancelled."
               );
 
-              navigation.goBack();
+              navigation.navigate("MedRequests", {
+  initialTab: "reserved",
+});
             } catch (error) {
               const message =
                 error instanceof Error

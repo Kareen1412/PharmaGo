@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import type { MedicineRequest } from "../../../shared/types/medRequest";
 import type { PharmacyMedicineRequestReply } from "../../../shared/types/pharmacyRequestReply";
-import ReserveMedicineModal from "./reservedMedicineModal";
+import ReserveMedicineModal from "./ReservedMedicineModal";
 import { medRequestsStyles as styles } from "../styles/medRequestsStyles";
 
 type Props = {

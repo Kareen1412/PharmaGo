@@ -1,6 +1,8 @@
 import {
   collection,
+  deleteDoc,
   doc,
+  getDocs,
   limit,
   onSnapshot,
   orderBy,
@@ -51,4 +53,25 @@ export const markPharmacyNotificationAsRead = async (
   await updateDoc(doc(db, "pharmacyNotifications", notificationId), {
     readAt: Date.now(),
   });
+};
+
+export const clearPharmacyNotifications = async (): Promise<void> => {
+  const pharmacyId = auth.currentUser?.uid;
+
+  if (!pharmacyId) {
+    throw new Error("You must be logged in.");
+  }
+
+  const q = query(
+    collection(db, "pharmacyNotifications"),
+    where("pharmacyId", "==", pharmacyId)
+  );
+
+  const snapshot = await getDocs(q);
+
+  await Promise.all(
+    snapshot.docs.map((item) =>
+      deleteDoc(doc(db, "pharmacyNotifications", item.id))
+    )
+  );
 };

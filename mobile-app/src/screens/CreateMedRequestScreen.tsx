@@ -134,7 +134,10 @@ export default function CreateMedicineRequestScreen() {
       Alert.alert("Request sent", "Your medicine request was created.", [
         {
           text: "OK",
-          onPress: () => navigation.goBack(),
+          onPress: () =>
+  navigation.navigate("MedRequests", {
+    initialTab: "active",
+  }),
         },
       ]);
     } catch (error) {

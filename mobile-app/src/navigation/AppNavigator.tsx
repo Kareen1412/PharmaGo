@@ -30,7 +30,11 @@ export type RootStackParamList = {
   Signup: undefined;
   Home: undefined;
   CreateMedicineRequest: undefined;
-  MedRequests: undefined;
+ MedRequests:
+  | {
+      initialTab?: "active" | "reserved";
+    }
+  | undefined;
   MedRequestDetails: {
     request: MedicineRequest;
   };
