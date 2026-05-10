@@ -370,7 +370,7 @@ export default function PharmacyDashboardPage() {
 
   return (
     <div className={styles.dashboardLayout}>
-      <PharmacySidebar />
+     
 
       <main className={styles.mainContent}>
         <header className={styles.topHeader}>
