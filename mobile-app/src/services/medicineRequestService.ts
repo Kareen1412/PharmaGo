@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   onSnapshot,
+  orderBy,
   query,
   updateDoc,
   where,
@@ -16,7 +17,10 @@ import type {
   MedicineRequestUrgency,
 } from "../../../shared/types/medRequest";
 
+import type { PharmacyMedicineRequestReply } from "../../../shared/types/pharmacyRequestReply";
 import type { LebanonRegion } from "../../../shared/constants/lebanonLocations";
+
+import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
 
 type CreateMedicineRequestInput = {
   userName: string | null;
@@ -154,6 +158,31 @@ export const listenToMyActiveMedicineRequests = (
   );
 };
 
+export const listenToMedicineRequestReplies = (
+  medicineRequestId: string,
+  onRepliesChange: (replies: PharmacyMedicineRequestReply[]) => void,
+  onError: (error: Error) => void
+): Unsubscribe => {
+  const q = query(
+    collection(db, "medicineRequestReplies"),
+    where("medicineRequestId", "==", medicineRequestId),
+    orderBy("createdAt", "desc")
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const replies = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      })) as PharmacyMedicineRequestReply[];
+
+      onRepliesChange(replies);
+    },
+    (error) => onError(error)
+  );
+};
+
 export const updateMedicineRequest = async (
   requestId: string,
   input: UpdateMedicineRequestInput
@@ -198,4 +227,183 @@ export const softDeleteMedicineRequest = async (
     status: "deleted",
     updatedAt: Date.now(),
   });
+};
+
+export const listenToMedicineRequestById = (
+  requestId: string,
+  onRequestChange: (request: MedicineRequest | null) => void,
+  onError: (error: Error) => void
+): Unsubscribe => {
+  const requestRef = doc(db, "medicineRequests", requestId);
+
+  return onSnapshot(
+    requestRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onRequestChange(null);
+        return;
+      }
+
+      onRequestChange({
+        id: snapshot.id,
+        ...snapshot.data(),
+      } as MedicineRequest);
+    },
+    (error) => onError(error)
+  );
+};
+
+type CreateMedicineReservationInput = {
+  requestId: string;
+  replyId: string;
+  reservedQuantity: number;
+  durationDays: 1 | 3 | 7;
+};
+
+type CreateMedicineReservationResult = {
+  reservationId: string;
+};
+
+const createMedicineReservationCallable = httpsCallable<
+  CreateMedicineReservationInput,
+  CreateMedicineReservationResult
+>(functions, "createMedicineReservation");
+
+export const createMedicineReservation = async (
+  input: CreateMedicineReservationInput
+): Promise<CreateMedicineReservationResult> => {
+  const result = await createMedicineReservationCallable(input);
+  return result.data;
+};
+
+export const listenToMyReservedMedicineRequests = (
+  onReservationsChange: (reservations: MedicineReservation[]) => void,
+  onError: (error: Error) => void
+): Unsubscribe => {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    throw new Error("You must be logged in.");
+  }
+
+  const q = query(
+    collection(db, "medicineReservations"),
+    where("userId", "==", currentUser.uid),
+    orderBy("createdAt", "desc")
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const reservations = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      })) as MedicineReservation[];
+
+      const visibleReservations = reservations.filter(
+        (reservation) =>
+          reservation.status === "pending" ||
+          reservation.status === "confirmed"
+      );
+
+      onReservationsChange(visibleReservations);
+    },
+    (error) => onError(error)
+  );
+};
+
+type CancelMedicineReservationInput = {
+  reservationId: string;
+};
+
+const cancelMedicineReservationCallable = httpsCallable<
+  CancelMedicineReservationInput,
+  { success: boolean }
+>(functions, "cancelMedicineReservation");
+
+export const cancelMedicineReservation = async (
+  reservationId: string
+): Promise<void> => {
+  await cancelMedicineReservationCallable({reservationId});
+};
+
+export const listenToMedicineRequestReplyById = (
+  replyId: string,
+  onReplyChange: (reply: PharmacyMedicineRequestReply | null) => void,
+  onError: (error: Error) => void
+): Unsubscribe => {
+  const replyRef = doc(db, "medicineRequestReplies", replyId);
+
+  return onSnapshot(
+    replyRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onReplyChange(null);
+        return;
+      }
+
+      onReplyChange({
+        id: snapshot.id,
+        ...snapshot.data(),
+      } as PharmacyMedicineRequestReply);
+    },
+    (error) => onError(error)
+  );
+};
+
+export const listenToMedicineReservationById = (
+  reservationId: string,
+  onReservationChange: (reservation: MedicineReservation | null) => void,
+  onError: (error: Error) => void
+): Unsubscribe => {
+  const reservationRef = doc(db, "medicineReservations", reservationId);
+
+  return onSnapshot(
+    reservationRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        onReservationChange(null);
+        return;
+      }
+
+      onReservationChange({
+        id: snapshot.id,
+        ...snapshot.data(),
+      } as MedicineReservation);
+    },
+    (error) => onError(error)
+  );
+};
+export const listenToCompletedMedicineReservations = (
+  onReservationsChange: (reservations: MedicineReservation[]) => void,
+  onError: (error: Error) => void
+): Unsubscribe => {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    throw new Error("You must be logged in.");
+  }
+
+  const q = query(
+    collection(db, "medicineReservations"),
+    where("userId", "==", currentUser.uid),
+    orderBy("createdAt", "desc")
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const reservations = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      })) as MedicineReservation[];
+
+      const completedReservations = reservations.filter(
+        (reservation) => reservation.status === "completed"
+      );
+
+      onReservationsChange(completedReservations);
+    },
+    (error) => onError(error)
+  );
 };

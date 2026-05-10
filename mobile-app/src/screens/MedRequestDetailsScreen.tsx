@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -13,9 +13,13 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import type { MedicineRequest } from "../../../shared/types/medRequest";
+import type { PharmacyMedicineRequestReply } from "../../../shared/types/pharmacyRequestReply";
+import MedicineRequestRepliesList from "../components/MedicineRequestRepliesList";
 import {
+  listenToMedicineRequestReplies,
   softDeleteMedicineRequest,
   updateMedicineRequest,
+  listenToMedicineRequestById,
 } from "../services/medicineRequestService";
 import { medRequestsStyles as styles } from "../styles/medRequestsStyles";
 
@@ -62,6 +66,44 @@ export default function MedRequestDetailsScreen() {
   );
   const [isUrgent, setIsUrgent] = useState(request.urgency === "urgent");
   const [saving, setSaving] = useState(false);
+
+  const [replies, setReplies] = useState<PharmacyMedicineRequestReply[]>([]);
+  const [loadingReplies, setLoadingReplies] = useState(true);
+
+
+  useEffect(() => {
+  const unsubscribe = listenToMedicineRequestById(
+    request.id,
+    (updatedRequest) => {
+      if (!updatedRequest) {
+        navigation.goBack();
+        return;
+      }
+
+      setCurrentRequest(updatedRequest);
+    },
+    (error) => {
+      console.error("Failed to listen to request details:", error);
+    }
+  );
+
+  return unsubscribe;
+}, [navigation, request.id]);
+
+  useEffect(() => {
+    const unsubscribe = listenToMedicineRequestReplies(
+      currentRequest.id,
+      (items) => {
+        setReplies(items);
+        setLoadingReplies(false);
+      },
+      () => {
+        setLoadingReplies(false);
+      }
+    );
+
+    return unsubscribe;
+  }, [currentRequest.id]);
 
   const resetEditFields = () => {
     setMedicineName(currentRequest.medicineName);
@@ -143,12 +185,52 @@ export default function MedRequestDetailsScreen() {
           <Text style={styles.title}>Request Details</Text>
           <Text style={styles.subtitle}>View or edit your request.</Text>
         </View>
+
+        {!isEditing && (
+          <View style={styles.topActionsRow}>
+            <Pressable
+              style={styles.topEditButton}
+              onPress={() => setIsEditing(true)}
+            >
+              <Ionicons name="create-outline" size={18} color="#4e7e5d" />
+            </Pressable>
+
+            <Pressable style={styles.topDeleteButton} onPress={handleDelete}>
+              <Ionicons name="trash-outline" size={18} color="#9f2a20" />
+            </Pressable>
+          </View>
+        )}
       </View>
 
       <ScrollView
         contentContainerStyle={styles.detailsContent}
         showsVerticalScrollIndicator={false}
       >
+        {isEditing && (
+          <View style={styles.compactEditActionsRow}>
+            <Pressable
+              style={styles.compactCancelButton}
+              onPress={handleCancelEdit}
+              disabled={saving}
+            >
+              <Text style={styles.compactCancelText}>Cancel</Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.compactSaveButton,
+                saving && styles.submitButtonDisabled,
+              ]}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              <Text style={styles.compactSaveText}>
+                {saving ? "Saving..." : "Save"}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
         <View style={styles.card}>
           {currentRequest.imageUrl && (
             <Image
@@ -189,7 +271,11 @@ export default function MedRequestDetailsScreen() {
           <View style={styles.infoGrid}>
             <View style={styles.infoPill}>
               <Text style={styles.infoLabel}>Replies</Text>
-              <Text style={styles.infoValue}>0 pharmacies</Text>
+              <Text style={styles.infoValue}>
+                {(currentRequest.replyCount ?? 0) === 1
+                  ? "1 pharmacy"
+                  : `${currentRequest.replyCount ?? 0} pharmacies`}
+              </Text>
             </View>
 
             <View style={styles.infoPill}>
@@ -262,42 +348,16 @@ export default function MedRequestDetailsScreen() {
           </View>
         </View>
 
-        {isEditing ? (
-          <View style={styles.editActionsRow}>
-            <Pressable
-              style={styles.cancelButton}
-              onPress={handleCancelEdit}
-              disabled={saving}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </Pressable>
-
-            <Pressable
-              style={[
-                styles.saveButton,
-                saving && styles.submitButtonDisabled,
-              ]}
-              onPress={handleSave}
-              disabled={saving}
-            >
-              <Text style={styles.submitButtonText}>
-                {saving ? "Saving..." : "Save Changes"}
-              </Text>
-            </Pressable>
+        {loadingReplies ? (
+          <View style={styles.repliesCard}>
+            <Text style={styles.repliesTitle}>Loading replies...</Text>
           </View>
         ) : (
-          <Pressable
-            style={styles.submitButton}
-            onPress={() => setIsEditing(true)}
-          >
-            <Text style={styles.submitButtonText}>Edit Request</Text>
-            <Ionicons name="create-outline" size={19} color="#ffffff" />
-          </Pressable>
+          <MedicineRequestRepliesList
+  request={currentRequest}
+  replies={replies}
+/>
         )}
-
-        <Pressable style={styles.deleteButton} onPress={handleDelete}>
-          <Text style={styles.deleteButtonText}>Delete Request</Text>
-        </Pressable>
       </ScrollView>
     </View>
   );

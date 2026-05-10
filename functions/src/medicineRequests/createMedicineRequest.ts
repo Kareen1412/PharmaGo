@@ -166,6 +166,8 @@ export const createMedicineRequest = onCall(
 
       reservedReservationId: null,
 
+      replyCount: 0,
+
       createdAt: now,
       updatedAt: null,
     };

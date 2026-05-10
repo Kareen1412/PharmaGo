@@ -1,0 +1,620 @@
+.dashboardLayout {
+  min-height: 100vh;
+  background: #f0f4ed;
+  color: #1f2a22;
+}
+
+.mainContent {
+  margin-left: 260px;
+  padding: 34px;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: 18px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.header p {
+  margin: 6px 0 0;
+  color: #66736a;
+  font-size: 14px;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  background: #e7eee8;
+  border-radius: 18px;
+  padding: 5px;
+  margin-bottom: 18px;
+  max-width: 520px;
+}
+
+.tabButton {
+  flex: 1;
+  height: 44px;
+  border: none;
+  border-radius: 15px;
+  background: transparent;
+  color: #66736a;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tabButtonActive {
+  background: #ffffff;
+  color: #4e7e5d;
+  box-shadow: 0 8px 18px rgba(78, 126, 93, 0.08);
+}
+
+.centerCard,
+.emptyCard {
+  min-height: 180px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #d9e4dc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyCard {
+  flex-direction: column;
+  text-align: center;
+  padding: 30px;
+}
+
+.emptyIcon {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: #edf8f0;
+  color: #4e7e5d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.emptyCard h3 {
+  margin: 12px 0 6px;
+  font-size: 18px;
+}
+
+.emptyCard p {
+  margin: 0;
+  color: #66736a;
+  font-size: 14px;
+}
+
+.requestGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+  gap: 14px;
+}
+
+.requestCard {
+  width: 100%;
+  height: 155px;
+  border-radius: 24px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #d9e4dc;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 16px 28px rgba(78, 126, 93, 0.06);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  overflow: hidden;
+}
+
+
+.requestCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(78, 126, 93, 0.1);
+}
+
+.urgentRequestCard {
+  background: #fff8f7;
+  border-color: #f3b8b2;
+  box-shadow: 0 16px 30px rgba(159, 42, 32, 0.08);
+}
+
+.cardMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  height: 100%;
+}
+
+.availableButtonActive {
+  background: #345c42;
+}
+
+.substituteButtonSelected {
+  background: #dcefe4;
+  color: #2f6f42;
+}
+
+.replyForm {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 22px;
+  background: #f8fbf8;
+  border: 1px solid #d9e4dc;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.formGroup span,
+.currencyGroup span {
+  color: #66736a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.formGroup input,
+.formGroup textarea {
+  border: 1px solid #d9e4dc;
+  border-radius: 16px;
+  padding: 12px 14px;
+  font: inherit;
+  color: #1f2a22;
+  background: #ffffff;
+  outline: none;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  border-color: #4e7e5d;
+}
+
+.formGroup textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.priceRow {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 12px;
+  align-items: end;
+}
+
+.currencyGroup {
+  margin-bottom: 14px;
+}
+
+.radioRow {
+  min-height: 45px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.radioRow label,
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #1f2a22;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.checkboxRow {
+  margin-bottom: 14px;
+}
+
+.formError {
+  margin: 0 0 12px;
+  color: #9f2a20;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sendReplyButton {
+  width: 100%;
+  min-height: 50px;
+  border: none;
+  border-radius: 18px;
+  background: #4e7e5d;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sendReplyButton:hover {
+  background: #345c42;
+}
+
+.sendReplyButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 650px) {
+  .priceRow {
+    grid-template-columns: 1fr;
+  }
+
+  .currencyGroup {
+    margin-bottom: 14px;
+  }
+}
+
+.requestNote {
+  margin: 5px 0 0;
+  color: #66736a;
+  font-size: 13px;
+  line-height: 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardFooter {
+  margin-top: 8px;
+  color: #66736a;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.iconBox {
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  background: #edf8f0;
+  color: #4e7e5d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.urgentRequestCard .iconBox {
+  background: #ffffff;
+  color: #9f2a20;
+}
+
+.requestInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.requestInfo h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #1f2a22;
+}
+
+.requestInfo p {
+  margin: 5px 0 0;
+  color: #66736a;
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.metaRow span {
+  background: #edf8f0;
+  color: #2f6f42;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.urgentRequestCard .metaRow span {
+  background: #ffffff;
+  color: #9f2a20;
+}
+
+.urgentSection {
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #d9e4dc;
+}
+
+.urgentToggle {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #d9e4dc;
+  background: transparent;
+  color: #66736a;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 0 2px 10px;
+  margin-bottom: 12px;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 42, 34, 0.35);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+}
+
+.modalCard {
+  width: min(680px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 28px;
+  border: 1px solid #d9e4dc;
+  padding: 24px;
+  box-shadow: 0 24px 70px rgba(31, 42, 34, 0.2);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.modalHeader p {
+  margin: 5px 0 0;
+  color: #66736a;
+  font-size: 14px;
+}
+
+.closeButton {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 14px;
+  background: #f0f4ed;
+  color: #1f2a22;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.detailImage {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 20px;
+  background: #e7eee8;
+  margin-bottom: 16px;
+}
+
+.detailSection {
+  margin-top: 14px;
+}
+
+.detailLabel {
+  display: block;
+  color: #66736a;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.detailValue {
+  color: #1f2a22;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.detailMuted {
+  color: #66736a;
+  font-size: 14px;
+  line-height: 20px;
+  margin: 0;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.infoPill {
+  background: #f0f4ed;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.infoPill span {
+  display: block;
+  color: #66736a;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.infoPill strong {
+  display: block;
+  margin-top: 4px;
+  color: #1f2a22;
+  font-size: 13.5px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.availableButton,
+.substituteButton {
+  flex: 1;
+  min-height: 50px;
+  border: none;
+  border-radius: 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.availableButton {
+  background: #4e7e5d;
+  color: #ffffff;
+}
+
+.availableButton:hover {
+  background: #345c42;
+}
+
+.substituteButton {
+  background: #f0f4ed;
+  color: #66736a;
+}
+
+.substituteButtonActive {
+  background: #edf8f0;
+  color: #2f6f42;
+}
+
+.requestCard {
+  position: relative;
+}
+
+.repliedRequestCard {
+  border-color: #b9d8c2;
+}
+
+.repliedBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #edf8f0;
+  color: #2f6f42;
+  border: 1px solid #cfe4d5;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  z-index: 1;
+}
+
+.substituteButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+  .mainContent {
+    margin-left: 0;
+    padding: 88px 22px 22px;
+  }
+}
+
+@media (max-width: 800px) {
+  .requestGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalActions {
+    flex-direction: column;
+  }
+}
+
+.emptyMiniCard {
+  min-height: 82px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px dashed #d9e4dc;
+  color: #66736a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.reservationStatusLine,
+.reservationWarningLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #edf8f0;
+  color: #2f6f42;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.reservationWarningLine {
+  background: #fff2f0;
+  color: #9f2a20;
+}
+
+.dangerButton {
+  flex: 1;
+  min-height: 50px;
+  border: none;
+  border-radius: 18px;
+  background: #fff2f0;
+  color: #9f2a20;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.dangerButton:hover {
+  background: #ffe1dc;
+}
+
+.availableButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.smallDangerButton {
+  margin-top: 10px;
+  min-height: 40px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: #9f2a20;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.smallDangerButton:hover {
+  background: #fff2f0;
+}

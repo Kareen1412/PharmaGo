@@ -63,7 +63,7 @@ export default function HomeScreen() {
     homeStyles.actionCard,
     pressed && homeStyles.actionCardPressed,
   ]}
-  onPress={() => navigation.navigate("Questions")}
+  onPress={() => navigation.navigate("AskQuestion")}
 >
   <View style={homeStyles.actionTopRow}>
     <View style={homeStyles.iconCircle}>

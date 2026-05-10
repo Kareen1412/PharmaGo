@@ -12,8 +12,12 @@ import { Ionicons } from "@expo/vector-icons";
 import BottomNavbar from "../components/BottomNavbar";
 import ActiveMedicineRequestsList from "../components/ActiveMedicineRequestsList";
 import ReservedMedicineRequestsList from "../components/ReservedMedicineRequestsList";
-import { listenToMyActiveMedicineRequests } from "../services/medicineRequestService";
+import {
+  listenToMyActiveMedicineRequests,
+  listenToMyReservedMedicineRequests,
+} from "../services/medicineRequestService";
 import type { MedicineRequest } from "../../../shared/types/medRequest";
+import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
 import { medRequestsStyles as styles } from "../styles/medRequestsStyles";
 
 export default function MedRequestsScreen() {
@@ -21,20 +25,45 @@ export default function MedRequestsScreen() {
 
   const [activeTab, setActiveTab] = useState<"active" | "reserved">("active");
   const [requests, setRequests] = useState<MedicineRequest[]>([]);
+  const [reservations, setReservations] = useState<MedicineReservation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = listenToMyActiveMedicineRequests(
+    let activeDone = false;
+    let reservedDone = false;
+
+    const finishLoading = () => {
+      if (activeDone && reservedDone) setLoading(false);
+    };
+
+    const unsubscribeActive = listenToMyActiveMedicineRequests(
       (items) => {
         setRequests(items);
-        setLoading(false);
+        activeDone = true;
+        finishLoading();
       },
       () => {
-        setLoading(false);
+        activeDone = true;
+        finishLoading();
       }
     );
 
-    return unsubscribe;
+    const unsubscribeReserved = listenToMyReservedMedicineRequests(
+      (items) => {
+        setReservations(items);
+        reservedDone = true;
+        finishLoading();
+      },
+      () => {
+        reservedDone = true;
+        finishLoading();
+      }
+    );
+
+    return () => {
+      unsubscribeActive();
+      unsubscribeReserved();
+    };
   }, []);
 
   const goToCreateRequest = () => {
@@ -105,11 +134,17 @@ export default function MedRequestsScreen() {
             requests={requests}
             onCreateRequest={goToCreateRequest}
             onOpenRequest={(request) =>
-              navigation.navigate("MedRequestDetails", { request })
+              navigation.navigate("MedRequestDetails", {request})
             }
           />
         ) : (
-          <ReservedMedicineRequestsList onCreateRequest={goToCreateRequest} />
+          <ReservedMedicineRequestsList
+            reservations={reservations}
+            onCreateRequest={goToCreateRequest}
+            onOpenReservation={(reservation) =>
+              navigation.navigate("ReservationDetails", {reservation})
+            }
+          />
         )}
       </ScrollView>
 

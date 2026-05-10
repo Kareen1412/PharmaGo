@@ -67,16 +67,16 @@ export default function PharmacySidebar() {
   const navItems = [
     { key: "dashboard", label: "Dashboard", path: "/" },
     { key: "profile", label: "Profile", path: "/profile" },
-    { key: "requests", label: "Requests", path: "/pharmacy/requests" },
-    { key: "questions", label: "Questions", path: "/pharmacy/questions" },
+    { key: "requests", label: "Requests", path: "/requests" },
+    { key: "questions", label: "Questions", path: "/questions" },
     { key: "settings", label: "Settings", path: "/pharmacy/settings" },
   ] as const;
 
   const getActiveItem = () => {
     if (location.pathname === "/") return "dashboard";
     if (location.pathname.startsWith("/profile")) return "profile";
-    if (location.pathname.startsWith("/pharmacy/requests")) return "requests";
-    if (location.pathname.startsWith("/pharmacy/questions")) return "questions";
+    if (location.pathname.startsWith("/requests")) return "requests";
+    if (location.pathname.startsWith("/questions")) return "questions";
     if (location.pathname.startsWith("/pharmacy/settings")) return "settings";
 
     return "dashboard";

@@ -6,6 +6,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import PharmacyVerificationPage from "./pages/pharmacyVerification";
 import PharmacyProfilePage from "./pages/pharmacyProfile";
 import PharmacyLayout from "./components/PharmacyLayout";
+import PharmacyRequestsPage from "./pages/pharmacyRequests";
+import PharmacyQuestionsPage from "./pages/PharmacyQuestionsPage";
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
       >
         <Route path="/" element={<PharmacyDashboardPage />} />
         <Route path="/profile" element={<PharmacyProfilePage />} />
+        <Route path="/requests" element={<PharmacyRequestsPage />} />
+        <Route path="/questions" element={<PharmacyQuestionsPage />} />
         
       </Route>
     </Routes>

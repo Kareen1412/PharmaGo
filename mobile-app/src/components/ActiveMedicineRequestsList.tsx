@@ -33,7 +33,7 @@ export default function ActiveMedicineRequestsList({
   return (
     <View style={styles.list}>
       {requests.map((request) => {
-        const replyCount = 0;
+        const replyCount = request.replyCount ?? 0;
 
         return (
           <Pressable
@@ -55,8 +55,8 @@ export default function ActiveMedicineRequestsList({
                 </Text>
 
                 <Text style={styles.replyText}>
-                  {replyCount} replied pharmacies
-                </Text>
+  {replyCount} {replyCount === 1 ? "pharmacy replied" : "pharmacies replied"}
+</Text>
               </View>
 
               <Ionicons name="chevron-forward" size={20} color="#66736a" />

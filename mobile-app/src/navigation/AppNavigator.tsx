@@ -9,6 +9,13 @@ import CreateMedicineRequestScreen from "../screens/CreateMedRequestScreen";
 import MedRequestsScreen from "../screens/MedRequestsScreen";
 import MedRequestDetailsScreen from "../screens/MedRequestDetailsScreen";
 import type { MedicineRequest } from "../../../shared/types/medRequest";
+import ReservationDetailsScreen from "../screens/ReservationDetailsScreen";
+import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
+import QuestionsScreen from "../screens/QuestionsScreen";
+import AskQuestionScreen from "../screens/AskQuestionScreen";
+import QuestionDetailsScreen from "../screens/QuestionDetailsScreen";
+import type { PharmaQuestion } from "../../../shared/types/question";
+import ProfileScreen from "../screens/ProfileScreen";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -19,6 +26,15 @@ export type RootStackParamList = {
   MedRequestDetails: {
     request: MedicineRequest;
   };
+  ReservationDetails: {
+    reservation: MedicineReservation;
+  };
+  Questions: undefined;
+  AskQuestion: undefined;
+  QuestionDetails: {
+    question: PharmaQuestion;
+  };
+  Profile: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -46,6 +62,12 @@ export default function AppNavigator() {
             />
             <Stack.Screen name="MedRequests" component={MedRequestsScreen} />
             <Stack.Screen name="MedRequestDetails" component={MedRequestDetailsScreen} />
+
+<Stack.Screen name="Questions" component={QuestionsScreen} />
+<Stack.Screen name="AskQuestion" component={AskQuestionScreen} />
+<Stack.Screen name="QuestionDetails" component={QuestionDetailsScreen} />
+<Stack.Screen name="Profile" component={ProfileScreen} />
+<Stack.Screen name="ReservationDetails" component={ReservationDetailsScreen} />
           </>
         ) : (
           <>

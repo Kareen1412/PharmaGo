@@ -24,6 +24,8 @@ export type MedicineRequest = {
 
   allowSubstitutes: boolean;
 
+  replyCount: number;
+
   reservedReservationId: string | null;
 
   createdAt: number;
