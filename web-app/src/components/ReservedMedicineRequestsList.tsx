@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
   Bookmark,
@@ -12,6 +12,7 @@ import styles from "../styles/pharmacy-requests.module.css";
 
 type Props = {
   reservations: MedicineReservation[];
+  openReservationId?: string;
 };
 
 const getDurationText = (days: 1 | 3 | 7) => {
@@ -41,14 +42,31 @@ const getTimeLeft = (expiresAt: number | null) => {
 
 export default function ReservedMedicineRequestsList({
   reservations,
+  openReservationId,
 }: Props) {
   const [selectedReservation, setSelectedReservation] =
     useState<MedicineReservation | null>(null);
+
+    const openedReservationIdRef = useRef<string | null>(null);
 
   const [showConfirmed, setShowConfirmed] = useState(true);
   const [showPending, setShowPending] = useState(true);
   const [showExpired, setShowExpired] = useState(true);
   const [, forceUpdate] = useState(0);
+
+  useEffect(() => {
+  if (!openReservationId) return;
+  if (openedReservationIdRef.current === openReservationId) return;
+
+  const targetReservation = reservations.find(
+    (reservation) => reservation.id === openReservationId
+  );
+
+  if (!targetReservation) return;
+
+  openedReservationIdRef.current = openReservationId;
+  setSelectedReservation(targetReservation);
+}, [openReservationId, reservations]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {

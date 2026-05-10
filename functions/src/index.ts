@@ -39,3 +39,5 @@ export {onQuestionReplyCreated} from
   "./recentActivity/onQuestionReplyCreated";
 export {onMedicineReservationUpdated} from
   "./recentActivity/onMedicineReservationUpdated";
+export {onUserReplyToPharmacyAnswer} from
+  "./pharmacyNotifications/onUserReplyToPharmacyAnswer";

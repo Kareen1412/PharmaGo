@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Pill } from "lucide-react";
 import type { MedicineRequest } from "../../../shared/types/medRequest";
 import RequestDetailsModal from "./RequestDetailsModal";
@@ -7,6 +7,7 @@ import styles from "../styles/pharmacy-requests.module.css";
 type Props = {
   requests: MedicineRequest[];
   repliedRequestIds: string[];
+  openRequestId?: string;
 };
 
 const formatDate = (timestamp: number) => {
@@ -24,11 +25,28 @@ const getDisplayUpdatedDate = (request: MedicineRequest) => {
 export default function ActiveMedicineRequestsList({
   requests,
   repliedRequestIds,
+  openRequestId,
 }: Props) {
   const [selectedRequest, setSelectedRequest] = useState<MedicineRequest | null>(
     null
   );
+
+  const openedRequestIdRef = useRef<string | null>(null);
   const [showUrgent, setShowUrgent] = useState(true);
+
+  useEffect(() => {
+    if (!openRequestId) return;
+    if (openedRequestIdRef.current === openRequestId) return;
+
+    const targetRequest = requests.find(
+      (request) => request.id === openRequestId
+    );
+
+    if (!targetRequest) return;
+
+    openedRequestIdRef.current = openRequestId;
+    setSelectedRequest(targetRequest);
+  }, [openRequestId, requests]);
 
   const urgentRequests = requests.filter(
     (request) => request.urgency === "urgent"

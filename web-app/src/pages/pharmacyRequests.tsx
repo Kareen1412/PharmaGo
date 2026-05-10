@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import ActiveMedicineRequestsList from "../components/ActiveMedicineRequestsList";
 import ReservedMedicineRequestsList from "../components/ReservedMedicineRequestsList";
 import {
@@ -10,12 +11,30 @@ import styles from "../styles/pharmacy-requests.module.css";
 import { listenToPharmacyReservations } from "../services/pharmacyReservationService";
 import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
 
+type RequestsRouteState = {
+  activeTab?: "active" | "reserved";
+  openRequestId?: string;
+  openReservationId?: string;
+};
+
 export default function PharmacyRequestsPage() {
-  const [activeTab, setActiveTab] = useState<"active" | "reserved">("active");
+  const location = useLocation();
+  const state = location.state as RequestsRouteState | null;
+
+  const [activeTab, setActiveTab] = useState<"active" | "reserved">(
+    state?.activeTab ?? "active"
+  );
+
   const [activeRequests, setActiveRequests] = useState<MedicineRequest[]>([]);
   const [reservations, setReservations] = useState<MedicineReservation[]>([]);
   const [repliedRequestIds, setRepliedRequestIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (state?.activeTab) {
+      setActiveTab(state.activeTab);
+    }
+  }, [state?.activeTab]);
 
   useEffect(() => {
     let unsubscribeActive: (() => void) | undefined;
@@ -116,9 +135,13 @@ export default function PharmacyRequestsPage() {
           <ActiveMedicineRequestsList
             requests={activeRequests}
             repliedRequestIds={repliedRequestIds}
+            openRequestId={state?.openRequestId}
           />
         ) : (
-          <ReservedMedicineRequestsList reservations={reservations} />
+          <ReservedMedicineRequestsList
+            reservations={reservations}
+            openReservationId={state?.openReservationId}
+          />
         )}
       </main>
     </div>

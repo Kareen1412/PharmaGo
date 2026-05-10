@@ -1,30 +1,53 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LogOut, Menu, X } from "lucide-react";
+import { Bell, LogOut, Menu, X } from "lucide-react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "../config/firebase";
+import {
+  listenToPharmacyNotifications,
+  markPharmacyNotificationAsRead,
+} from "../services/pharmacyNotificationService";
+import type { PharmacyNotification } from
+  "../../../shared/types/pharmacyNotification";
 import styles from "../styles/pharmacy-dashboard.module.css";
 import logo from "../assets/images/logo.png";
+
+const formatNotificationTime = (timestamp: number) => {
+  return new Date(timestamp).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 export default function PharmacySidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<PharmacyNotification[]>(
+    []
+  );
+
   const [pharmacyName, setPharmacyName] = useState("");
   const [email, setEmail] = useState("");
   const [loadingProfile, setLoadingProfile] = useState(true);
 
   useEffect(() => {
     let unsubscribePharmacy: (() => void) | null = null;
+    let unsubscribeNotifications: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       unsubscribePharmacy?.();
+      unsubscribeNotifications?.();
 
       if (!user) {
         setPharmacyName("");
         setEmail("");
+        setNotifications([]);
         setLoadingProfile(false);
         return;
       }
@@ -56,13 +79,25 @@ export default function PharmacySidebar() {
           setLoadingProfile(false);
         }
       );
+
+      unsubscribeNotifications = listenToPharmacyNotifications(
+        setNotifications,
+        (error) => {
+          console.error("PHARMACY NOTIFICATIONS ERROR:", error);
+        }
+      );
     });
 
     return () => {
       unsubscribePharmacy?.();
+      unsubscribeNotifications?.();
       unsubscribeAuth();
     };
   }, []);
+
+  const unreadCount = useMemo(() => {
+    return notifications.filter((item) => item.readAt === null).length;
+  }, [notifications]);
 
   const navItems = [
     { key: "dashboard", label: "Dashboard", path: "/" },
@@ -88,6 +123,47 @@ export default function PharmacySidebar() {
     }
 
     setIsMobileOpen(false);
+  };
+
+  const handleNotificationClick = async (
+    notification: PharmacyNotification
+  ) => {
+    try {
+      await markPharmacyNotificationAsRead(notification.id);
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+
+    setNotificationsOpen(false);
+    setIsMobileOpen(false);
+
+    if (notification.targetType === "reservation") {
+      navigate("/requests", {
+        state: {
+          activeTab: "reserved",
+          openReservationId: notification.targetId,
+        },
+      });
+      return;
+    }
+
+    if (notification.targetType === "request") {
+      navigate("/requests", {
+        state: {
+          activeTab: "active",
+          openRequestId: notification.targetId,
+        },
+      });
+      return;
+    }
+
+    if (notification.targetType === "question") {
+      navigate("/questions", {
+        state: {
+          openQuestionId: notification.targetId,
+        },
+      });
+    }
   };
 
   const handleLogout = async () => {
@@ -147,6 +223,62 @@ export default function PharmacySidebar() {
                   <X size={18} />
                 </button>
               </div>
+            </div>
+
+            <div className={styles.notificationBox}>
+              <button
+                type="button"
+                className={styles.notificationButton}
+                onClick={() =>
+                  setNotificationsOpen((current) => !current)
+                }
+              >
+                <span>
+                  <Bell size={17} />
+                  Notifications
+                </span>
+
+                {unreadCount > 0 && (
+                  <strong className={styles.notificationBadge}>
+                    {unreadCount}
+                  </strong>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <div className={styles.notificationDropdown}>
+                  {notifications.length === 0 ? (
+                    <div className={styles.notificationEmpty}>
+                      No notifications yet.
+                    </div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <button
+                        key={notification.id}
+                        type="button"
+                        className={`${styles.notificationItem} ${
+                          notification.readAt === null ?
+                            styles.notificationUnread :
+                            ""
+                        }`}
+                        onClick={() =>
+                          handleNotificationClick(notification)
+                        }
+                      >
+                        <div>
+                          <h4>{notification.title}</h4>
+                          <p>{notification.message}</p>
+                          <span>
+                            {formatNotificationTime(
+                              notification.createdAt
+                            )}
+                          </span>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
 
             <nav className={styles.sidebarNav}>

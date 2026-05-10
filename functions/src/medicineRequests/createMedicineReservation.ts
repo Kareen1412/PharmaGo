@@ -158,6 +158,18 @@ export const createMedicineReservation = onCall(
         reservedReservationId: reservationRef.id,
         updatedAt: now,
       });
+      const notificationRef = db.collection("pharmacyNotifications").doc();
+
+      transaction.set(notificationRef, {
+        pharmacyId: reply.pharmacyId,
+        type: "reservation_created",
+        title: "New reservation",
+        message: `${reservedMedicineName} was reserved by a user.`,
+        targetType: "reservation",
+        targetId: reservationRef.id,
+        readAt: null,
+        createdAt: now,
+      });
 
       return {
         reservationId: reservationRef.id,

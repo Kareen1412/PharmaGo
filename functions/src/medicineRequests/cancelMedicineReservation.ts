@@ -79,6 +79,19 @@ export const cancelMedicineReservation = onCall(
         reservedReservationId: null,
         updatedAt: now,
       });
+
+      const notificationRef = db.collection("pharmacyNotifications").doc();
+
+      transaction.set(notificationRef, {
+        pharmacyId: reservation.pharmacyId,
+        type: "reservation_cancelled",
+        title: "Reservation cancelled",
+        message: "A user cancelled a reservation. The request is active again.",
+        targetType: "request",
+        targetId: reservation.requestId,
+        readAt: null,
+        createdAt: now,
+      });
     });
 
     return {success: true};

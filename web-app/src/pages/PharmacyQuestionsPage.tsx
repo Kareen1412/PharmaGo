@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
 import QuestionDetailsModal from "../components/QuestionDetailsModal";
 import { listenToAllActiveQuestions } from "../services/pharmacyQuestionService";
 import type { PharmaQuestion } from "../../../shared/types/question";
 import styles from "../styles/pharmacy-questions.module.css";
+
+type QuestionsRouteState = {
+  openQuestionId?: string;
+};
 
 const formatDate = (timestamp: number) => {
   return new Date(timestamp).toLocaleDateString("en-GB", {
@@ -14,10 +19,15 @@ const formatDate = (timestamp: number) => {
 };
 
 export default function PharmacyQuestionsPage() {
+  const location = useLocation();
+  const state = location.state as QuestionsRouteState | null;
+
   const [questions, setQuestions] = useState<PharmaQuestion[]>([]);
   const [selectedQuestion, setSelectedQuestion] =
     useState<PharmaQuestion | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const openedQuestionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = listenToAllActiveQuestions(
@@ -33,6 +43,22 @@ export default function PharmacyQuestionsPage() {
 
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const openQuestionId = state?.openQuestionId;
+
+    if (!openQuestionId) return;
+    if (openedQuestionIdRef.current === openQuestionId) return;
+
+    const targetQuestion = questions.find(
+      (question) => question.id === openQuestionId
+    );
+
+    if (!targetQuestion) return;
+
+    openedQuestionIdRef.current = openQuestionId;
+    setSelectedQuestion(targetQuestion);
+  }, [state?.openQuestionId, questions]);
 
   const renderQuestionCard = (question: PharmaQuestion) => {
     return (

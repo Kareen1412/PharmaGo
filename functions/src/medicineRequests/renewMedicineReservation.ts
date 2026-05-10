@@ -118,6 +118,19 @@ export const renewMedicineReservation = onCall(
         reservedReservationId: reservationId,
         updatedAt: now,
       });
+
+      const notificationRef = db.collection("pharmacyNotifications").doc();
+
+      transaction.set(notificationRef, {
+        pharmacyId: reservation.pharmacyId,
+        type: "reservation_renewed",
+        title: "Reservation renewed",
+        message: `${reservation.medicineName} was renewed by the user.`,
+        targetType: "reservation",
+        targetId: reservationId,
+        readAt: null,
+        createdAt: now,
+      });
     });
 
     return {success: true};
