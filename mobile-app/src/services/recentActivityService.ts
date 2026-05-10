@@ -1,7 +1,9 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
+  getDocs,
   limit,
   onSnapshot,
   orderBy,
@@ -105,4 +107,21 @@ export const fetchRecentActivityTarget = async (
   }
 
   throw new Error("Unsupported activity target.");
+};
+
+export const clearRecentActivities = async (
+  userId: string
+): Promise<void> => {
+  const q = query(
+    collection(db, "recentActivities"),
+    where("userId", "==", userId)
+  );
+
+  const snapshot = await getDocs(q);
+
+  await Promise.all(
+    snapshot.docs.map((item) =>
+      deleteDoc(doc(db, "recentActivities", item.id))
+    )
+  );
 };

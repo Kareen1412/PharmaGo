@@ -66,6 +66,21 @@ export const homeStyles = StyleSheet.create({
   marginBottom: 16
 },
 
+clearActivityButton: {
+  backgroundColor: "#fff2f0",
+  borderRadius: 14,
+  paddingHorizontal: 12,
+  paddingVertical: 9,
+  borderWidth: 1,
+  borderColor: "#ffd8d2",
+},
+
+clearActivityText: {
+  color: "#9f2a20",
+  fontSize: 12,
+  fontWeight: "800",
+},
+
   actionCard: {
     backgroundColor: "#ffffff",
     borderRadius: 24,
