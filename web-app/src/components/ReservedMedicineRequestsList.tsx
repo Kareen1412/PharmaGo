@@ -1,7 +1,13 @@
-import { useState } from "react";
-import { Bookmark, CheckCircle, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  AlertCircle,
+  Bookmark,
+  CheckCircle,
+  Clock,
+} from "lucide-react";
 import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
 import ReservationDetailsModal from "./ReservationDetailsModal";
+import { expireMedicineReservation } from "../services/pharmacyReservationService";
 import styles from "../styles/pharmacy-requests.module.css";
 
 type Props = {
@@ -20,12 +26,17 @@ const getTimeLeft = (expiresAt: number | null) => {
 
   if (diff <= 0) return "Expired";
 
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
 
-  if (days >= 1) return `${days} day${days > 1 ? "s" : ""} left`;
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  if (minutes > 0) return `${minutes}m ${seconds}s left`;
 
-  return `${hours} hour${hours !== 1 ? "s" : ""} left`;
+  return `${seconds}s left`;
 };
 
 export default function ReservedMedicineRequestsList({
@@ -36,6 +47,30 @@ export default function ReservedMedicineRequestsList({
 
   const [showConfirmed, setShowConfirmed] = useState(true);
   const [showPending, setShowPending] = useState(true);
+  const [showExpired, setShowExpired] = useState(true);
+  const [, forceUpdate] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      forceUpdate((value) => value + 1);
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    reservations.forEach((reservation) => {
+      if (
+        reservation.status === "confirmed" &&
+        reservation.expiresAt &&
+        Date.now() >= reservation.expiresAt
+      ) {
+        expireMedicineReservation(reservation.id).catch((error) =>
+          console.error("Failed to expire reservation:", error)
+        );
+      }
+    });
+  }, [reservations]);
 
   const confirmedReservations = reservations.filter(
     (reservation) => reservation.status === "confirmed"
@@ -45,25 +80,40 @@ export default function ReservedMedicineRequestsList({
     (reservation) => reservation.status === "pending"
   );
 
+  const expiredReservations = reservations.filter(
+    (reservation) => reservation.status === "expired"
+  );
+
   const renderReservationCard = (reservation: MedicineReservation) => {
     const isConfirmed = reservation.status === "confirmed";
+    const isExpired = reservation.status === "expired";
 
     return (
       <button
         key={reservation.id}
-        className={styles.requestCard}
+        className={`${styles.requestCard} ${
+          isExpired ? styles.expiredRequestCard : ""
+        }`}
         onClick={() => setSelectedReservation(reservation)}
       >
         <div className={styles.cardMain}>
           <div className={styles.iconBox}>
-            {isConfirmed ? <CheckCircle size={22} /> : <Bookmark size={22} />}
+            {isExpired ? (
+              <AlertCircle size={22} />
+            ) : isConfirmed ? (
+              <CheckCircle size={22} />
+            ) : (
+              <Bookmark size={22} />
+            )}
           </div>
 
           <div className={styles.requestInfo}>
             <h3>{reservation.medicineName}</h3>
 
             <p className={styles.requestNote}>
-              {isConfirmed
+              {isExpired
+                ? "Reservation expired"
+                : isConfirmed
                 ? getTimeLeft(reservation.expiresAt)
                 : "Waiting for your confirmation"}
             </p>
@@ -76,7 +126,11 @@ export default function ReservedMedicineRequestsList({
 
             <div className={styles.metaRow}>
               <span>
-                {isConfirmed ? "Reserved" : "Pending confirmation"}
+                {isExpired
+                  ? "Expired"
+                  : isConfirmed
+                  ? "Reserved"
+                  : "Pending confirmation"}
               </span>
               <span>
                 {getDurationText(reservation.reservationDurationDays)}
@@ -146,6 +200,31 @@ export default function ReservedMedicineRequestsList({
             ) : (
               <div className={styles.requestGrid}>
                 {pendingReservations.map(renderReservationCard)}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
+      <section className={styles.urgentSection}>
+        <button
+          className={styles.urgentToggle}
+          onClick={() => setShowExpired((current) => !current)}
+        >
+          <span>Expired reservations</span>
+          <span>{showExpired ? "Hide" : "Show"}</span>
+        </button>
+
+        {showExpired && (
+          <>
+            {expiredReservations.length === 0 ? (
+              <div className={styles.emptyMiniCard}>
+                <Clock size={18} />
+                <span>No expired reservations.</span>
+              </div>
+            ) : (
+              <div className={styles.requestGrid}>
+                {expiredReservations.map(renderReservationCard)}
               </div>
             )}
           </>

@@ -1,23 +1,23 @@
 import * as admin from "firebase-admin";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 
-type CancelReservationData = {
+type ExpireReservationData = {
   reservationId: string;
 };
 
-export const cancelMedicineReservation = onCall(
+export const expireMedicineReservation = onCall(
   {region: "europe-west1"},
   async (request) => {
-    const userId = request.auth?.uid;
+    const uid = request.auth?.uid;
 
-    if (!userId) {
+    if (!uid) {
       throw new HttpsError(
         "unauthenticated",
         "You must be logged in."
       );
     }
 
-    const data = request.data as CancelReservationData;
+    const data = request.data as ExpireReservationData;
 
     const reservationId =
       typeof data.reservationId === "string" ? data.reservationId.trim() : "";
@@ -45,39 +45,37 @@ export const cancelMedicineReservation = onCall(
         throw new HttpsError("not-found", "Reservation not found.");
       }
 
-      if (reservation.userId !== userId) {
+      const isOwner = reservation.userId === uid;
+      const isPharmacy = reservation.pharmacyId === uid;
+
+      if (!isOwner && !isPharmacy) {
         throw new HttpsError(
           "permission-denied",
-          "You can only cancel your own reservation."
+          "You cannot update this reservation."
         );
       }
 
-      if (
-        reservation.status !== "pending" &&
-        reservation.status !== "confirmed" &&
-        reservation.status !== "expired"
-      ) {
+      if (reservation.status === "expired") {
+        return;
+      }
+
+      if (reservation.status !== "confirmed") {
         throw new HttpsError(
           "failed-precondition",
-          "This reservation cannot be cancelled."
+          "Only confirmed reservations can expire."
         );
       }
 
-      const requestRef = db
-        .collection("medicineRequests")
-        .doc(reservation.requestId);
-
-      const now = Date.now();
+      if (!reservation.expiresAt || Date.now() < reservation.expiresAt) {
+        throw new HttpsError(
+          "failed-precondition",
+          "This reservation has not expired yet."
+        );
+      }
 
       transaction.update(reservationRef, {
-        status: "cancelled",
-        updatedAt: now,
-      });
-
-      transaction.update(requestRef, {
-        status: "active",
-        reservedReservationId: null,
-        updatedAt: now,
+        status: "expired",
+        updatedAt: Date.now(),
       });
     });
 

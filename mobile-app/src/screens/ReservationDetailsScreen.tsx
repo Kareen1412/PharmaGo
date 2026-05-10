@@ -6,8 +6,10 @@ import { Ionicons } from "@expo/vector-icons";
 import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
 import type { MedicineRequest } from "../../../shared/types/medRequest";
 import type { PharmacyMedicineRequestReply } from "../../../shared/types/pharmacyRequestReply";
+import ReserveMedicineModal from "../components/reservedMedicineModal";
 import {
   cancelMedicineReservation,
+  expireMedicineReservation,
   listenToMedicineRequestById,
   listenToMedicineRequestReplyById,
   listenToMedicineReservationById,
@@ -28,6 +30,18 @@ const formatDate = (timestamp: number | null) => {
   });
 };
 
+const formatDateTime = (timestamp: number | null) => {
+  if (!timestamp) return "On hold";
+
+  return new Date(timestamp).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const formatPrice = (price: number | null, currencyCode?: string) => {
   if (price === null) return "Not specified";
   return `${price.toLocaleString()}${currencyCode ? ` ${currencyCode}` : ""}`;
@@ -45,12 +59,17 @@ const getTimeLeft = (expiresAt: number | null) => {
 
   if (diff <= 0) return "Expired";
 
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
 
-  if (days >= 1) return `${days} day${days > 1 ? "s" : ""} left`;
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  if (minutes > 0) return `${minutes}m ${seconds}s left`;
 
-  return `${hours} hour${hours !== 1 ? "s" : ""} left`;
+  return `${seconds}s left`;
 };
 
 export default function ReservationDetailsScreen() {
@@ -66,6 +85,17 @@ export default function ReservationDetailsScreen() {
   );
   const [replyDetails, setReplyDetails] =
     useState<PharmacyMedicineRequestReply | null>(null);
+
+  const [renewModalVisible, setRenewModalVisible] = useState(false);
+  const [, forceUpdate] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      forceUpdate((value) => value + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const unsubscribeReservation = listenToMedicineReservationById(
@@ -98,34 +128,54 @@ export default function ReservationDetailsScreen() {
       unsubscribeRequest();
       unsubscribeReply();
     };
-  }, [
-    navigation,
-    reservation.id,
-    reservation.requestId,
-    reservation.replyId,
-  ]);
+  }, [navigation, reservation.id, reservation.requestId, reservation.replyId]);
 
-  const handleCancel = () => {
+  useEffect(() => {
+    if (
+      currentReservation.status === "confirmed" &&
+      currentReservation.expiresAt &&
+      Date.now() >= currentReservation.expiresAt
+    ) {
+      expireMedicineReservation(currentReservation.id).catch((error) =>
+        console.error("Failed to expire reservation:", error)
+      );
+    }
+  }, [currentReservation]);
+
+  const handleDeleteOrCancel = () => {
+    const isExpired = currentReservation.status === "expired";
+
     Alert.alert(
-      "Cancel reservation?",
-      "This will cancel your reservation and make the request active again.",
+      isExpired ? "Delete expired reservation?" : "Cancel reservation?",
+      isExpired
+        ? "This will remove the expired reservation and make your request active again."
+        : "This will cancel your reservation and make the request active again.",
       [
         {
-          text: "Keep reservation",
+          text: isExpired ? "Keep reservation" : "Keep reservation",
           style: "cancel",
         },
         {
-          text: "Cancel reservation",
+          text: isExpired ? "Delete reservation" : "Cancel reservation",
           style: "destructive",
           onPress: async () => {
             try {
               await cancelMedicineReservation(currentReservation.id);
-              Alert.alert("Cancelled", "Your reservation was cancelled.");
+
+              Alert.alert(
+                isExpired ? "Deleted" : "Cancelled",
+                isExpired
+                  ? "The expired reservation was deleted and your request is active again."
+                  : "Your reservation was cancelled."
+              );
+
               navigation.goBack();
             } catch (error) {
               const message =
                 error instanceof Error
                   ? error.message
+                  : isExpired
+                  ? "Could not delete reservation."
                   : "Could not cancel reservation.";
 
               Alert.alert("Error", message);
@@ -138,6 +188,8 @@ export default function ReservationDetailsScreen() {
 
   const isSubstitute = replyDetails?.isSubstitute === true;
   const isConfirmed = currentReservation.status === "confirmed";
+  const isExpired = currentReservation.status === "expired";
+  const isCompleted = currentReservation.status === "completed";
 
   return (
     <View style={styles.page}>
@@ -149,7 +201,9 @@ export default function ReservationDetailsScreen() {
         <View style={styles.detailsTitleBox}>
           <Text style={styles.title}>Reservation Details</Text>
           <Text style={styles.subtitle}>
-            {isConfirmed
+            {isExpired
+              ? "This reservation expired."
+              : isConfirmed
               ? "Your reservation is confirmed."
               : "View your pending reservation."}
           </Text>
@@ -161,17 +215,25 @@ export default function ReservationDetailsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.card}>
-          <Text style={styles.detailLabel}>Reserved medicine</Text>
-          <Text style={styles.detailValue}>
-            {currentReservation.medicineName}
-          </Text>
+          <View style={styles.statusHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.detailLabel}>Reserved medicine</Text>
+              <Text style={styles.detailValue}>
+                {currentReservation.medicineName}
+              </Text>
+            </View>
+
+            {isExpired && (
+              <View style={styles.expiredBadge}>
+                <Text style={styles.expiredBadgeText}>Expired</Text>
+              </View>
+            )}
+          </View>
 
           <View style={styles.infoGrid}>
             <View style={styles.infoPill}>
               <Text style={styles.infoLabel}>Status</Text>
-              <Text style={styles.infoValue}>
-                {currentReservation.status}
-              </Text>
+              <Text style={styles.infoValue}>{currentReservation.status}</Text>
             </View>
 
             <View style={styles.infoPill}>
@@ -268,30 +330,73 @@ export default function ReservationDetailsScreen() {
         <View style={styles.card}>
           <Text style={styles.detailLabel}>Passcode</Text>
           <Text style={isConfirmed ? styles.passcodeText : styles.onHoldText}>
-            {currentReservation.passcode ??
-              "On hold until the pharmacy confirms your reservation."}
+            {isExpired
+              ? "Expired reservation. Renew it to receive a new passcode."
+              : currentReservation.passcode ??
+                "On hold until the pharmacy confirms your reservation."}
           </Text>
 
           <Text style={styles.detailLabel}>Expiration</Text>
-          <Text style={styles.onHoldText}>
-            {isConfirmed
+          <Text style={isExpired ? styles.expiredText : styles.onHoldText}>
+            {isExpired
+              ? "This reservation has expired."
+              : isConfirmed
               ? getTimeLeft(currentReservation.expiresAt)
               : "The timer starts after pharmacy confirmation."}
           </Text>
 
           {currentReservation.expiresAt && (
             <Text style={styles.detailValueMuted}>
-              Expires on {formatDate(currentReservation.expiresAt)}
+              Expires on {formatDateTime(currentReservation.expiresAt)}
             </Text>
           )}
         </View>
 
-        {currentReservation.status !== "completed" && (
-  <Pressable style={styles.cancelReservationButton} onPress={handleCancel}>
-    <Text style={styles.cancelReservationText}>Cancel reservation</Text>
-  </Pressable>
-)}
+        {isExpired ? (
+          <View style={styles.expiredActionsRow}>
+            <Pressable
+              style={styles.renewReservationButton}
+              onPress={() => setRenewModalVisible(true)}
+            >
+              <Text style={styles.renewReservationText}>
+                Renew reservation
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.cancelReservationButton}
+              onPress={handleDeleteOrCancel}
+            >
+              <Text style={styles.cancelReservationText}>
+                Delete reservation
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          !isCompleted && (
+            <Pressable
+              style={styles.cancelReservationButton}
+              onPress={handleDeleteOrCancel}
+            >
+              <Text style={styles.cancelReservationText}>
+                Cancel reservation
+              </Text>
+            </Pressable>
+          )
+        )}
       </ScrollView>
+
+      {requestDetails && replyDetails && (
+        <ReserveMedicineModal
+          visible={renewModalVisible}
+          request={requestDetails}
+          reply={replyDetails}
+          mode="renew"
+          reservationId={currentReservation.id}
+          onClose={() => setRenewModalVisible(false)}
+          onReserved={() => setRenewModalVisible(false)}
+        />
+      )}
     </View>
   );
 }

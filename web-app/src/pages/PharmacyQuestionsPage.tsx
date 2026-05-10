@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
-import PharmacySidebar from "../components/PharmacySidebar";
 import QuestionDetailsModal from "../components/QuestionDetailsModal";
 import { listenToAllActiveQuestions } from "../services/pharmacyQuestionService";
 import type { PharmaQuestion } from "../../../shared/types/question";
@@ -75,16 +74,12 @@ export default function PharmacyQuestionsPage() {
   };
 
   return (
-    <div className={styles.dashboardLayout}>
-      <PharmacySidebar />
-
-      <main className={styles.mainContent}>
+    <div className={styles.page}>
+      <main className={styles.container}>
         <section className={styles.header}>
           <div>
             <h1>Questions</h1>
-            <p>
-              View patient questions and answer them directly in real time.
-            </p>
+            <p>View patient questions and answer them directly in real time.</p>
           </div>
         </section>
 

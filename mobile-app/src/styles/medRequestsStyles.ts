@@ -849,4 +849,54 @@ onHoldText: {
   lineHeight: 20,
   fontWeight: "700",
 },
+
+expiredRequestCard: {
+  borderColor: "#f3b8b2",
+  backgroundColor: "#fff8f7",
+},
+
+expiredBadge: {
+  backgroundColor: "#fff2f0",
+  paddingHorizontal: 10,
+  paddingVertical: 6,
+  borderRadius: 999,
+  alignSelf: "flex-start",
+},
+
+expiredBadgeText: {
+  color: "#9f2a20",
+  fontSize: 12,
+  fontWeight: "800",
+},
+
+expiredText: {
+  fontSize: 14,
+  color: "#9f2a20",
+  lineHeight: 20,
+  fontWeight: "800",
+},
+
+statusHeaderRow: {
+  flexDirection: "row",
+  alignItems: "flex-start",
+  gap: 12,
+},
+
+expiredActionsRow: {
+  gap: 10,
+},
+
+renewReservationButton: {
+  height: 52,
+  borderRadius: 18,
+  backgroundColor: "#4e7e5d",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+renewReservationText: {
+  color: "#ffffff",
+  fontSize: 15,
+  fontWeight: "800",
+},
 });

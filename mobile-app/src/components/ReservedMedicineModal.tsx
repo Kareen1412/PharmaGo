@@ -10,7 +10,10 @@ import {
 
 import type { MedicineRequest } from "../../../shared/types/medRequest";
 import type { PharmacyMedicineRequestReply } from "../../../shared/types/pharmacyRequestReply";
-import { createMedicineReservation } from "../services/medicineRequestService";
+import {
+  createMedicineReservation,
+  renewMedicineReservation,
+} from "../services/medicineRequestService";
 import { medRequestsStyles as styles } from "../styles/medRequestsStyles";
 
 type Props = {
@@ -19,6 +22,8 @@ type Props = {
   reply: PharmacyMedicineRequestReply | null;
   onClose: () => void;
   onReserved: (replyId: string) => void;
+  mode?: "create" | "renew";
+  reservationId?: string;
 };
 
 type DurationDays = 1 | 3 | 7;
@@ -33,6 +38,8 @@ export default function ReserveMedicineModal({
   reply,
   onClose,
   onReserved,
+  mode = "create",
+  reservationId,
 }: Props) {
   const [quantity, setQuantity] = useState("1");
   const [durationDays, setDurationDays] = useState<DurationDays>(1);
@@ -46,6 +53,8 @@ export default function ReserveMedicineModal({
       ? reply.medicineName
       : request.medicineName;
 
+  const isRenewMode = mode === "renew";
+
   const handleReserve = async () => {
     try {
       setError("");
@@ -57,21 +66,36 @@ export default function ReserveMedicineModal({
         return;
       }
 
+      if (isRenewMode && !reservationId) {
+        setError("Reservation ID is missing.");
+        return;
+      }
+
       setSubmitting(true);
 
-      await createMedicineReservation({
-  requestId: request.id,
-  replyId: reply.id,
-  reservedQuantity,
-  durationDays,
-});
+      if (isRenewMode) {
+        await renewMedicineReservation({
+          reservationId: reservationId!,
+          reservedQuantity,
+          durationDays,
+        });
+      } else {
+        await createMedicineReservation({
+          requestId: request.id,
+          replyId: reply.id,
+          reservedQuantity,
+          durationDays,
+        });
+      }
 
       onReserved(reply.id);
 
       Alert.alert(
-  "Reservation sent",
-  "Your reservation is pending. The pharmacy will generate a passcode after confirming it."
-);
+        isRenewMode ? "Reservation renewed" : "Reservation sent",
+        isRenewMode
+          ? "Your reservation is pending again. The pharmacy will confirm it and generate a new passcode."
+          : "Your reservation is pending. The pharmacy will generate a passcode after confirming it."
+      );
 
       onClose();
     } catch (error) {
@@ -89,9 +113,13 @@ export default function ReserveMedicineModal({
         <View style={styles.reserveModalCard}>
           <View style={styles.reserveModalHeader}>
             <View>
-              <Text style={styles.reserveModalTitle}>Reserve medicine</Text>
+              <Text style={styles.reserveModalTitle}>
+                {isRenewMode ? "Renew reservation" : "Reserve medicine"}
+              </Text>
               <Text style={styles.reserveModalSubtitle}>
-                Confirm reservation details.
+                {isRenewMode
+                  ? "Choose the new reservation details."
+                  : "Confirm reservation details."}
               </Text>
             </View>
 
@@ -155,7 +183,13 @@ export default function ReserveMedicineModal({
             disabled={submitting}
           >
             <Text style={styles.confirmReserveText}>
-              {submitting ? "Reserving..." : "Confirm reservation"}
+              {submitting
+                ? isRenewMode
+                  ? "Renewing..."
+                  : "Reserving..."
+                : isRenewMode
+                ? "Renew reservation"
+                : "Confirm reservation"}
             </Text>
           </Pressable>
         </View>

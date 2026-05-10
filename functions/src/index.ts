@@ -29,3 +29,13 @@ export {completeMedicineReservation} from
 export {createQuestion} from "./questions/createQuestion";
 export {updateQuestion} from "./questions/updateQuestion";
 export {deleteQuestion} from "./questions/deleteQuestion";
+export {renewMedicineReservation} from
+  "./medicineRequests/renewMedicineReservation";
+export {expireMedicineReservation} from
+  "./medicineRequests/expireMedicineReservation";
+export {onMedicineRequestReplyCreated} from
+  "./recentActivity/onMedicineRequestReplyCreated";
+export {onQuestionReplyCreated} from
+  "./recentActivity/onQuestionReplyCreated";
+export {onMedicineReservationUpdated} from
+  "./recentActivity/onMedicineReservationUpdated";

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { doc, onSnapshot } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "../config/firebase";
 import styles from "../styles/pharmacy-dashboard.module.css";
 import logo from "../assets/images/logo.png";
@@ -69,7 +69,6 @@ export default function PharmacySidebar() {
     { key: "profile", label: "Profile", path: "/profile" },
     { key: "requests", label: "Requests", path: "/requests" },
     { key: "questions", label: "Questions", path: "/questions" },
-    { key: "settings", label: "Settings", path: "/pharmacy/settings" },
   ] as const;
 
   const getActiveItem = () => {
@@ -77,7 +76,6 @@ export default function PharmacySidebar() {
     if (location.pathname.startsWith("/profile")) return "profile";
     if (location.pathname.startsWith("/requests")) return "requests";
     if (location.pathname.startsWith("/questions")) return "questions";
-    if (location.pathname.startsWith("/pharmacy/settings")) return "settings";
 
     return "dashboard";
   };
@@ -90,6 +88,11 @@ export default function PharmacySidebar() {
     }
 
     setIsMobileOpen(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/signin");
   };
 
   return (
@@ -124,45 +127,56 @@ export default function PharmacySidebar() {
           isMobileOpen ? styles.sidebarOpen : ""
         }`}
       >
-        <div className={styles.sidebarTop}>
-          <div className={styles.brandBox}>
-            <div className={styles.mobileSidebarHeader}>
-              <div>
-                <div className={styles.sidebarBrandRow}>
-                  <h2>{loadingProfile ? "" : pharmacyName}</h2>
+        <div className={styles.sidebarInner}>
+          <div className={styles.sidebarTop}>
+            <div className={styles.brandBox}>
+              <div className={styles.mobileSidebarHeader}>
+                <div>
+                  <div className={styles.sidebarBrandRow}>
+                    <h2>{loadingProfile ? "" : pharmacyName}</h2>
+                  </div>
+                  <p>{loadingProfile ? "" : email}</p>
                 </div>
-                <p>{loadingProfile ? "" : email}</p>
-              </div>
 
-              <button
-                type="button"
-                className={styles.closeSidebarButton}
-                onClick={() => setIsMobileOpen(false)}
-                aria-label="Close menu"
-              >
-                <X size={18} />
-              </button>
+                <button
+                  type="button"
+                  className={styles.closeSidebarButton}
+                  onClick={() => setIsMobileOpen(false)}
+                  aria-label="Close menu"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
+
+            <nav className={styles.sidebarNav}>
+              {navItems.map((item) => {
+                const isActive = activeItem === item.key;
+
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`${styles.navItem} ${
+                      isActive ? styles.activeNavItem : ""
+                    }`}
+                    onClick={() => handleNavigate(item.path)}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          <nav className={styles.sidebarNav}>
-            {navItems.map((item) => {
-              const isActive = activeItem === item.key;
-
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={`${styles.navItem} ${
-                    isActive ? styles.activeNavItem : ""
-                  }`}
-                  onClick={() => handleNavigate(item.path)}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
+          <button
+            type="button"
+            className={styles.sidebarLogoutButton}
+            onClick={handleLogout}
+          >
+            <LogOut size={17} />
+            Logout
+          </button>
         </div>
       </aside>
     </>

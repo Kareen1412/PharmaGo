@@ -27,6 +27,11 @@ const completeReservationCallable = httpsCallable(
   "completeMedicineReservation"
 );
 
+const expireReservationCallable = httpsCallable(
+  functions,
+  "expireMedicineReservation"
+);
+
 export const listenToPharmacyReservations = (
   onSuccess: (items: MedicineReservation[]) => void,
   onError: () => void
@@ -46,15 +51,17 @@ export const listenToPharmacyReservations = (
   return onSnapshot(
     q,
     (snapshot) => {
-      const items = snapshot.docs
-        .map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        })) as MedicineReservation[];
+      const items = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      })) as MedicineReservation[];
 
       const visibleItems = items
         .filter(
-          (item) => item.status === "pending" || item.status === "confirmed"
+          (item) =>
+            item.status === "pending" ||
+            item.status === "confirmed" ||
+            item.status === "expired"
         )
         .sort((a, b) => b.createdAt - a.createdAt);
 
@@ -109,4 +116,8 @@ export const completeMedicineReservation = async (
   passcode: string
 ) => {
   await completeReservationCallable({ reservationId, passcode });
+};
+
+export const expireMedicineReservation = async (reservationId: string) => {
+  await expireReservationCallable({ reservationId });
 };

@@ -1,23 +1,11 @@
 import React, { useEffect, useState } from "react";
 import styles from "../styles/pharmacy-profile.module.css";
-import PharmacySidebar from "../components/PharmacySidebar";
 import { auth } from "../config/firebase";
-import { signOut } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
 import {
   LEBANON_REGIONS,
   REGION_CITIES,
 } from "../../../shared/constants/lebanonLocations";
-import {
-  ChevronDown,
-  ChevronRight,
-  Edit3,
-  Save,
-  X,
-  Phone,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { Edit3, Save, X, Phone, Plus, Trash2 } from "lucide-react";
 import type {
   Pharmacy,
   PharmacyPhone,
@@ -29,13 +17,6 @@ import {
   subscribeToPharmacyPhones,
   subscribeToPharmacyProfile,
 } from "../services/pharmacyProfileService";
-
-type PanelKey =
-  | "general"
-  | "address"
-  | "hours"
-  | "phones"
-  | "accountStatus";
 
 const dayLabels: Record<keyof OperatingHours, string> = {
   monday: "Monday",
@@ -92,33 +73,18 @@ function Field({
 
 function Panel({
   title,
-  isOpen,
-  onToggle,
   children,
 }: {
   title: string;
-  isOpen: boolean;
-  onToggle: () => void;
   children: React.ReactNode;
 }) {
   return (
     <section className={styles.panel}>
-      <button type="button" className={styles.panelHeader} onClick={onToggle}>
-        <div className={styles.panelTitleWrap}>
-          <span className={styles.panelArrow}>
-            {isOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-          </span>
-          <span className={styles.panelTitle}>{title}</span>
-        </div>
-      </button>
-
-      <div
-        className={`${styles.panelContent} ${
-          isOpen ? styles.panelContentOpen : ""
-        }`}
-      >
-        <div className={styles.panelBody}>{children}</div>
+      <div className={styles.panelHeader}>
+        <span className={styles.panelTitle}>{title}</span>
       </div>
+
+      <div className={styles.panelBody}>{children}</div>
     </section>
   );
 }
@@ -129,7 +95,6 @@ function normalizePhoneNumber(value: string) {
 
 function isValidPhoneNumber(value: string) {
   const cleaned = normalizePhoneNumber(value);
-
   return /^(\+961|0)?[0-9]{7,8}$/.test(cleaned);
 }
 
@@ -151,15 +116,12 @@ function isValidLongitude(value: number | null) {
 }
 
 function parseOptionalNumber(value: string) {
-  if (value.trim() === "") {
-    return null;
-  }
-
+  if (value.trim() === "") return null;
   return Number(value);
 }
 
 export default function PharmacyProfilePage() {
-  const navigate = useNavigate();
+
 
   const [isEditing, setIsEditing] = useState(false);
   const [pharmacy, setPharmacy] = useState<Pharmacy | null>(null);
@@ -171,14 +133,6 @@ export default function PharmacyProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [openPanels, setOpenPanels] = useState<Record<PanelKey, boolean>>({
-    general: false,
-    address: false,
-    hours: false,
-    phones: false,
-    accountStatus: false,
-  });
 
   useEffect(() => {
     const currentUser = auth.currentUser;
@@ -220,14 +174,7 @@ export default function PharmacyProfilePage() {
   const canToggleActivity =
     pharmacy?.verificationStatus?.toLowerCase() === "verified";
 
-  const togglePanel = (key: PanelKey) => {
-    setOpenPanels((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    navigate("/signin");
-  };
 
   const startEditing = () => {
     if (!pharmacy) return;
@@ -252,19 +199,16 @@ export default function PharmacyProfilePage() {
 
     if (!cleanedPharmacyNameEnglish) {
       setError("Pharmacy name in English is required.");
-      setOpenPanels((prev) => ({ ...prev, general: true }));
       return;
     }
 
     if (!isValidLatitude(draft.address.mapLat)) {
       setError("Latitude must be between -90 and 90.");
-      setOpenPanels((prev) => ({ ...prev, address: true }));
       return;
     }
 
     if (!isValidLongitude(draft.address.mapLng)) {
       setError("Longitude must be between -180 and 180.");
-      setOpenPanels((prev) => ({ ...prev, address: true }));
       return;
     }
 
@@ -399,7 +343,6 @@ export default function PharmacyProfilePage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        
         <div className={styles.container}>Loading profile...</div>
       </div>
     );
@@ -408,7 +351,6 @@ export default function PharmacyProfilePage() {
   if (!pharmacy) {
     return (
       <div className={styles.page}>
-        
         <div className={styles.container}>
           {error || "Pharmacy profile not found."}
         </div>
@@ -430,8 +372,6 @@ export default function PharmacyProfilePage() {
 
   return (
     <div className={styles.page}>
-     
-
       <div className={styles.container}>
         {error && <div className={styles.errorBox}>{error}</div>}
 
@@ -440,6 +380,7 @@ export default function PharmacyProfilePage() {
             <h1 className={styles.title}>
               {pharmacy.pharmacyNameEnglish || "Pharmacy Profile"}
             </h1>
+
             {pharmacy.pharmacyNameArabic && (
               <div className={styles.subtitleAr}>
                 {pharmacy.pharmacyNameArabic}
@@ -489,6 +430,7 @@ export default function PharmacyProfilePage() {
                   <X size={16} />
                   Cancel
                 </button>
+
                 <button
                   type="button"
                   className={styles.primaryButton}
@@ -500,15 +442,12 @@ export default function PharmacyProfilePage() {
                 </button>
               </div>
             )}
+
           </div>
         </div>
 
         <div className={styles.panels}>
-          <Panel
-            title="General Information"
-            isOpen={openPanels.general}
-            onToggle={() => togglePanel("general")}
-          >
+          <Panel title="General Information">
             {!isEditing ? (
               <div className={`${styles.grid} ${styles.gridTwo}`}>
                 <Field
@@ -587,24 +526,19 @@ export default function PharmacyProfilePage() {
             )}
           </Panel>
 
-          <Panel
-            title="Address"
-            isOpen={openPanels.address}
-            onToggle={() => togglePanel("address")}
-          >
+          <Panel title="Address">
+            <p className={styles.panelNote}>
+  It is recommended to complete your pharmacy address information so
+  users can find your pharmacy more easily when searching and improve
+  your visibility in the app.
+</p>
             {!isEditing ? (
               <div className={`${styles.grid} ${styles.gridTwo}`}>
                 <Field label="Region" value={pharmacy.address.region} />
                 <Field label="City" value={pharmacy.address.city} />
                 <Field label="Street" value={pharmacy.address.street} />
-                <Field
-                  label="Latitude"
-                  value={pharmacy.address.mapLat}
-                />
-                <Field
-                  label="Longitude"
-                  value={pharmacy.address.mapLng}
-                />
+                <Field label="Latitude" value={pharmacy.address.mapLat} />
+                <Field label="Longitude" value={pharmacy.address.mapLng} />
                 <Field
                   label="Additional details"
                   value={pharmacy.address.additionalDetails}
@@ -781,11 +715,7 @@ export default function PharmacyProfilePage() {
             )}
           </Panel>
 
-          <Panel
-            title="Operating Hours"
-            isOpen={openPanels.hours}
-            onToggle={() => togglePanel("hours")}
-          >
+          <Panel title="Operating Hours">
             {!isEditing ? (
               pharmacy.is24Hours ? (
                 <div className={styles.pillBox}>Open 24/7</div>
@@ -821,7 +751,7 @@ export default function PharmacyProfilePage() {
                 </div>
 
                 {!safeDraft.is24Hours && (
-                  <div className={`${styles.hoursList} ${styles.editHoursList}`}>
+                  <div className={styles.hoursList}>
                     {days.map((day) => {
                       const schedule = safeDraft.operatingHours[day];
 
@@ -880,11 +810,7 @@ export default function PharmacyProfilePage() {
             )}
           </Panel>
 
-          <Panel
-            title="Phone Numbers"
-            isOpen={openPanels.phones}
-            onToggle={() => togglePanel("phones")}
-          >
+          <Panel title="Phone Numbers">
             {!isEditing ? (
               <div className={styles.phoneList}>
                 {safePhones.map((phone, index) => (
@@ -998,11 +924,7 @@ export default function PharmacyProfilePage() {
             )}
           </Panel>
 
-          <Panel
-            title="Account Status"
-            isOpen={openPanels.accountStatus}
-            onToggle={() => togglePanel("accountStatus")}
-          >
+          <Panel title="Account Status">
             <div className={`${styles.grid} ${styles.gridTwo}`}>
               <Field
                 label="Verification status"
@@ -1049,12 +971,6 @@ export default function PharmacyProfilePage() {
               />
             </div>
           </Panel>
-        </div>
-
-        <div className={styles.footerActions}>
-          <button className={styles.logoutButton} onClick={handleLogout}>
-            Logout
-          </button>
         </div>
       </div>
     </div>

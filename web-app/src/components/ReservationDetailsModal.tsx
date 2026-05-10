@@ -7,6 +7,7 @@ import {
   cancelMedicineReservationByPharmacy,
   completeMedicineReservation,
   confirmMedicineReservation,
+  expireMedicineReservation,
   getReservationRequestAndReply,
 } from "../services/pharmacyReservationService";
 import styles from "../styles/pharmacy-requests.module.css";
@@ -14,16 +15,6 @@ import styles from "../styles/pharmacy-requests.module.css";
 type Props = {
   reservation: MedicineReservation;
   onClose: () => void;
-};
-
-const formatDate = (timestamp: number | null) => {
-  if (!timestamp) return "On hold";
-
-  return new Date(timestamp).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 };
 
 const formatPrice = (price: number | null, currencyCode?: string) => {
@@ -43,12 +34,17 @@ const getTimeLeft = (expiresAt: number | null) => {
 
   if (diff <= 0) return "Expired";
 
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
 
-  if (days >= 1) return `${days} day${days > 1 ? "s" : ""} left`;
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  if (minutes > 0) return `${minutes}m ${seconds}s left`;
 
-  return `${hours} hour${hours !== 1 ? "s" : ""} left`;
+  return `${seconds}s left`;
 };
 
 export default function ReservationDetailsModal({
@@ -63,9 +59,31 @@ export default function ReservationDetailsModal({
 
   const [passcode, setPasscode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [, forceUpdate] = useState(0);
 
   const isPending = reservation.status === "pending";
   const isConfirmed = reservation.status === "confirmed";
+  const isExpired = reservation.status === "expired";
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      forceUpdate((value) => value + 1);
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (
+      reservation.status === "confirmed" &&
+      reservation.expiresAt &&
+      Date.now() >= reservation.expiresAt
+    ) {
+      expireMedicineReservation(reservation.id).catch((error) =>
+        console.error("Failed to expire reservation:", error)
+      );
+    }
+  }, [reservation]);
 
   useEffect(() => {
     getReservationRequestAndReply(reservation)
@@ -145,6 +163,13 @@ export default function ReservationDetailsModal({
           </button>
         </div>
 
+        {isExpired && (
+          <div className={styles.reservationWarningLine}>
+            <AlertCircle size={15} />
+            <span>This reservation expired. The user can renew or delete it.</span>
+          </div>
+        )}
+
         <div className={styles.detailSection}>
           <span className={styles.detailLabel}>Reserved medicine</span>
           <strong className={styles.detailValue}>
@@ -183,9 +208,21 @@ export default function ReservationDetailsModal({
 
         <div className={styles.detailSection}>
           <span className={styles.detailLabel}>Expiration</span>
-          <div className={styles.reservationStatusLine}>
+          <div
+            className={
+              isExpired
+                ? styles.reservationWarningLine
+                : styles.reservationStatusLine
+            }
+          >
             <Clock size={16} />
-            <span>{getTimeLeft(reservation.expiresAt)}</span>
+            <span>
+              {isExpired
+                ? "Expired"
+                : isConfirmed
+                ? getTimeLeft(reservation.expiresAt)
+                : "Timer starts after confirmation."}
+            </span>
           </div>
         </div>
 
@@ -257,7 +294,7 @@ export default function ReservationDetailsModal({
           </div>
         )}
 
-        {isConfirmed && (
+        {isConfirmed && !isExpired && (
           <div className={styles.replyForm}>
             <label className={styles.formGroup}>
               <span>Reservation passcode</span>
@@ -277,12 +314,12 @@ export default function ReservationDetailsModal({
             </button>
 
             <button
-      className={styles.smallDangerButton}
-      onClick={handleCancel}
-      disabled={loading}
-    >
-      Cancel reservation
-    </button>
+              className={styles.smallDangerButton}
+              onClick={handleCancel}
+              disabled={loading}
+            >
+              Cancel reservation
+            </button>
           </div>
         )}
       </div>

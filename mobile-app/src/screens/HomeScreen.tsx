@@ -1,14 +1,35 @@
+import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useAuth } from "../contexts/AuthContext";
 import BottomNavbar from "../components/BottomNavbar";
+import RecentActivityList from "../components/RecentActivityList";
+import { listenToRecentActivities } from "../services/recentActivityService";
+import type { RecentActivity } from "../../../shared/types/recentActivity";
 import { homeStyles } from "../styles/homeStyles";
 
 export default function HomeScreen() {
-  const { appUser } = useAuth();
+  const { appUser, firebaseUser } = useAuth();
   const navigation = useNavigation<any>();
+
+  const [activities, setActivities] = useState<RecentActivity[]>([]);
+
+  useEffect(() => {
+    if (!firebaseUser) return;
+
+    const unsubscribe = listenToRecentActivities(
+      firebaseUser.uid,
+      3,
+      setActivities,
+      (error) => {
+        console.error("Failed to listen to recent activities:", error);
+      }
+    );
+
+    return unsubscribe;
+  }, [firebaseUser]);
 
   return (
     <View style={homeStyles.page}>
@@ -34,80 +55,91 @@ export default function HomeScreen() {
 
         <View style={homeStyles.actionsGrid}>
           <Pressable
-  style={({ pressed }) => [
-    homeStyles.actionCard,
-    pressed && homeStyles.actionCardPressed,
-  ]}
-  onPress={() => navigation.navigate("CreateMedicineRequest")}
->
-  <View style={homeStyles.actionTopRow}>
-    <View style={homeStyles.iconCircle}>
-      <Ionicons name="medkit-outline" size={24} color="#4e7e5d" />
-    </View>
+            style={({ pressed }) => [
+              homeStyles.actionCard,
+              pressed && homeStyles.actionCardPressed,
+            ]}
+            onPress={() => navigation.navigate("CreateMedicineRequest")}
+          >
+            <View style={homeStyles.actionTopRow}>
+              <View style={homeStyles.iconCircle}>
+                <Ionicons name="medkit-outline" size={24} color="#4e7e5d" />
+              </View>
 
-    <View style={homeStyles.actionArrow}>
-      <Ionicons name="arrow-forward" size={20} color="#4e7e5d" />
-    </View>
-  </View>
+              <View style={homeStyles.actionArrow}>
+                <Ionicons name="arrow-forward" size={20} color="#4e7e5d" />
+              </View>
+            </View>
 
-  <Text style={homeStyles.actionTitle}>Request Medicine</Text>
-  <Text style={homeStyles.actionText}>
-    Send a medicine request to nearby verified pharmacies.
-  </Text>
+            <Text style={homeStyles.actionTitle}>Request Medicine</Text>
+            <Text style={homeStyles.actionText}>
+              Send a medicine request to nearby verified pharmacies.
+            </Text>
 
-  <Text style={homeStyles.startText}>Start request</Text>
-</Pressable>
+            <Text style={homeStyles.startText}>Start request</Text>
+          </Pressable>
 
           <Pressable
-  style={({ pressed }) => [
-    homeStyles.actionCard,
-    pressed && homeStyles.actionCardPressed,
-  ]}
-  onPress={() => navigation.navigate("AskQuestion")}
->
-  <View style={homeStyles.actionTopRow}>
-    <View style={homeStyles.iconCircle}>
-      <Ionicons
-        name="chatbubble-ellipses-outline"
-        size={24}
-        color="#4e7e5d"
-      />
-    </View>
+            style={({ pressed }) => [
+              homeStyles.actionCard,
+              pressed && homeStyles.actionCardPressed,
+            ]}
+            onPress={() => navigation.navigate("AskQuestion")}
+          >
+            <View style={homeStyles.actionTopRow}>
+              <View style={homeStyles.iconCircle}>
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={24}
+                  color="#4e7e5d"
+                />
+              </View>
 
-    <View style={homeStyles.actionArrow}>
-      <Ionicons name="arrow-forward" size={20} color="#4e7e5d" />
-    </View>
+              <View style={homeStyles.actionArrow}>
+                <Ionicons name="arrow-forward" size={20} color="#4e7e5d" />
+              </View>
+            </View>
+
+            <Text style={homeStyles.actionTitle}>Ask a Pharmacist</Text>
+            <Text style={homeStyles.actionText}>
+              Ask a question and receive guidance from a verified pharmacy.
+            </Text>
+
+            <Text style={homeStyles.startText}>Ask now</Text>
+          </Pressable>
+        </View>
+       <Pressable
+  style={({ pressed }) => [
+    homeStyles.browsePharmacyCard,
+    pressed && homeStyles.browsePharmacyCardPressed,
+  ]}
+  onPress={() => navigation.navigate("PharmacyList")}
+>
+  <View style={homeStyles.browsePharmacyIcon}>
+    <Ionicons name="business-outline" size={22} color="#4e7e5d" />
   </View>
 
-  <Text style={homeStyles.actionTitle}>Ask a Pharmacist</Text>
-  <Text style={homeStyles.actionText}>
-    Ask a question and receive guidance from a verified pharmacy.
-  </Text>
+  <View style={homeStyles.browsePharmacyTextBox}>
+    <Text style={homeStyles.browsePharmacyTitle}>Browse Pharmacies</Text>
+    <Text style={homeStyles.browsePharmacyText} numberOfLines={2}>
+      Find verified pharmacies by nearby location, region, or city.
+    </Text>
+  </View>
 
-  <Text style={homeStyles.startText}>Ask now</Text>
+  <View style={homeStyles.browsePharmacyArrow}>
+    <Ionicons name="arrow-forward" size={19} color="#4e7e5d" />
+  </View>
 </Pressable>
-        </View>
 
         <View style={homeStyles.sectionHeader}>
           <Text style={homeStyles.sectionTitle}>Recent activity</Text>
-          <Pressable>
+
+          <Pressable onPress={() => navigation.navigate("RecentActivity")}>
             <Text style={homeStyles.viewAllText}>View all</Text>
           </Pressable>
         </View>
 
-        <View style={homeStyles.activityCard}>
-          <View style={homeStyles.activityIcon}>
-            <Ionicons name="time-outline" size={22} color="#4e7e5d" />
-          </View>
-
-          <View style={homeStyles.activityTextBox}>
-            <Text style={homeStyles.activityTitle}>No recent activity yet</Text>
-            <Text style={homeStyles.activityText}>
-              Your latest medicine replies and pharmacist answers will appear
-              here.
-            </Text>
-          </View>
-        </View>
+        <RecentActivityList activities={activities} />
       </ScrollView>
 
       <BottomNavbar />

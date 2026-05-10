@@ -43,7 +43,7 @@ export const homeStyles = StyleSheet.create({
     marginTop: 8,
   },
 
-    logoBox: {
+  logoBox: {
     width: 72,
     height: 72,
     borderRadius: 24,
@@ -54,55 +54,55 @@ export const homeStyles = StyleSheet.create({
     borderColor: "#e1eae3",
     boxShadow: "0px 6px 12px rgba(78, 126, 93, 0.08)",
     elevation: 4,
-    },
+  },
 
   logo: {
     width: 52,
     height: 52,
   },
 
-  actionsGrid: {
-    gap: 16,
-    marginBottom: 30,
+ actionsGrid: {
+  gap: 16,
+  marginBottom: 16
+},
+
+  actionCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#e1eae3",
+    boxShadow: "0px 8px 16px rgba(78, 126, 93, 0.08)",
+    elevation: 4,
   },
 
- actionCard: {
-  backgroundColor: "#ffffff",
-  borderRadius: 24,
-  padding: 20,
-  borderWidth: 1,
-  borderColor: "#e1eae3",
-  boxShadow: "0px 8px 16px rgba(78, 126, 93, 0.08)",
-  elevation: 4,
-},
-actionCardPressed: {
-  opacity: 0.82,
-  transform: [{ scale: 0.98 }],
-},
+  actionCardPressed: {
+    opacity: 0.82,
+    transform: [{ scale: 0.98 }],
+  },
 
-actionTopRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  marginBottom: 14,
-},
+  actionTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
 
-actionArrow: {
-  width: 34,
-  height: 34,
-  borderRadius: 17,
-  backgroundColor: "#eef5ef",
-  alignItems: "center",
-  justifyContent: "center",
-},
+  actionArrow: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#eef5ef",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-startText: {
-  fontSize: 14,
-  color: "#4e7e5d",
-  fontWeight: "800",
-  marginTop: 12,
-},
-
+  startText: {
+    fontSize: 14,
+    color: "#4e7e5d",
+    fontWeight: "800",
+    marginTop: 12,
+  },
 
   iconCircle: {
     width: 46,
@@ -146,6 +146,10 @@ startText: {
     fontWeight: "700",
   },
 
+  activityList: {
+    gap: 10,
+  },
+
   activityCard: {
     backgroundColor: "#ffffff",
     borderRadius: 22,
@@ -155,6 +159,15 @@ startText: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
+  },
+
+  activityCardPressed: {
+    opacity: 0.82,
+    transform: [{ scale: 0.99 }],
+  },
+
+  fullEmptyActivityCard: {
+    marginTop: 10,
   },
 
   activityIcon: {
@@ -170,7 +183,14 @@ startText: {
     flex: 1,
   },
 
+  activityTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
   activityTitle: {
+    flex: 1,
     fontSize: 15,
     color: "#1f2a22",
     fontWeight: "700",
@@ -182,4 +202,106 @@ startText: {
     color: "#6f7f73",
     lineHeight: 18,
   },
+
+  unreadDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 999,
+    backgroundColor: "#4e7e5d",
+  },
+
+  detailsTopBar: {
+    paddingTop: 48,
+    paddingHorizontal: 22,
+    paddingBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+
+  backButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.94)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#d9e4dc",
+  },
+
+  detailsTitleBox: {
+    flex: 1,
+  },
+
+  detailsTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#1f2a22",
+  },
+
+  detailsSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#66736a",
+    lineHeight: 18,
+  },
+
+  recentActivityContent: {
+    paddingHorizontal: 22,
+    paddingBottom: 34,
+  },
+  browsePharmacyCard: {
+  backgroundColor: "#ffffff",
+  borderRadius: 22,
+  padding: 16,
+  borderWidth: 1,
+  borderColor: "#e1eae3",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 14,
+  marginBottom: 24,
+  boxShadow: "0px 6px 12px rgba(78, 126, 93, 0.06)",
+  elevation: 3,
+},
+
+browsePharmacyCardPressed: {
+  opacity: 0.82,
+  transform: [{ scale: 0.99 }],
+},
+
+browsePharmacyIcon: {
+  width: 44,
+  height: 44,
+  borderRadius: 15,
+  backgroundColor: "#eef5ef",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+browsePharmacyTextBox: {
+  flex: 1,
+},
+
+browsePharmacyTitle: {
+  fontSize: 15,
+  color: "#1f2a22",
+  fontWeight: "800",
+  marginBottom: 3,
+},
+
+browsePharmacyText: {
+  fontSize: 13,
+  color: "#6f7f73",
+  lineHeight: 18,
+},
+
+browsePharmacyArrow: {
+  width: 34,
+  height: 34,
+  borderRadius: 17,
+  backgroundColor: "#eef5ef",
+  alignItems: "center",
+  justifyContent: "center",
+},
 });

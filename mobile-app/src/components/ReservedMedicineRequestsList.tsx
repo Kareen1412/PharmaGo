@@ -1,6 +1,10 @@
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
+import {
+  expireMedicineReservation,
+} from "../services/medicineRequestService";
 import { medRequestsStyles as styles } from "../styles/medRequestsStyles";
 
 type Props = {
@@ -21,12 +25,17 @@ const getTimeLeft = (expiresAt: number | null) => {
 
   if (diff <= 0) return "Expired";
 
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const days = Math.floor(hours / 24);
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
 
-  if (days >= 1) return `${days} day${days > 1 ? "s" : ""} left`;
+  if (days > 0) return `${days}d ${hours}h left`;
+  if (hours > 0) return `${hours}h ${minutes}m left`;
+  if (minutes > 0) return `${minutes}m ${seconds}s left`;
 
-  return `${hours} hour${hours !== 1 ? "s" : ""} left`;
+  return `${seconds}s left`;
 };
 
 export default function ReservedMedicineRequestsList({
@@ -34,6 +43,30 @@ export default function ReservedMedicineRequestsList({
   onOpenReservation,
   onCreateRequest,
 }: Props) {
+  const [, forceUpdate] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      forceUpdate((value) => value + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    reservations.forEach((reservation) => {
+      if (
+        reservation.status === "confirmed" &&
+        reservation.expiresAt &&
+        Date.now() >= reservation.expiresAt
+      ) {
+        expireMedicineReservation(reservation.id).catch((error) =>
+          console.error("Failed to expire reservation:", error)
+        );
+      }
+    });
+  }, [reservations]);
+
   if (reservations.length === 0) {
     return (
       <View style={styles.emptyCard}>
@@ -54,12 +87,14 @@ export default function ReservedMedicineRequestsList({
     <View style={styles.list}>
       {reservations.map((reservation) => {
         const isConfirmed = reservation.status === "confirmed";
+        const isExpired = reservation.status === "expired";
 
         return (
           <Pressable
             key={reservation.id}
             style={({ pressed }) => [
               styles.requestCard,
+              isExpired && styles.expiredRequestCard,
               pressed && styles.requestCardPressed,
             ]}
             onPress={() => onOpenReservation(reservation)}
@@ -67,9 +102,15 @@ export default function ReservedMedicineRequestsList({
             <View style={styles.requestTopRow}>
               <View style={styles.requestIcon}>
                 <Ionicons
-                  name={isConfirmed ? "checkmark-circle-outline" : "bookmark-outline"}
+                  name={
+                    isExpired
+                      ? "alert-circle-outline"
+                      : isConfirmed
+                      ? "checkmark-circle-outline"
+                      : "bookmark-outline"
+                  }
                   size={22}
-                  color="#4e7e5d"
+                  color={isExpired ? "#9f2a20" : "#4e7e5d"}
                 />
               </View>
 
@@ -79,7 +120,9 @@ export default function ReservedMedicineRequestsList({
                 </Text>
 
                 <Text style={styles.replyText}>
-                  {isConfirmed
+                  {isExpired
+                    ? "Reservation expired"
+                    : isConfirmed
                     ? getTimeLeft(reservation.expiresAt)
                     : "Waiting for pharmacy confirmation"}
                 </Text>
@@ -89,9 +132,13 @@ export default function ReservedMedicineRequestsList({
             </View>
 
             <View style={styles.badgeRow}>
-              <View style={styles.softBadge}>
-                <Text style={styles.softBadgeText}>
-                  {isConfirmed ? "Confirmed" : "Pending"}
+              <View style={isExpired ? styles.expiredBadge : styles.softBadge}>
+                <Text
+                  style={
+                    isExpired ? styles.expiredBadgeText : styles.softBadgeText
+                  }
+                >
+                  {isExpired ? "Expired" : isConfirmed ? "Confirmed" : "Pending"}
                 </Text>
               </View>
 

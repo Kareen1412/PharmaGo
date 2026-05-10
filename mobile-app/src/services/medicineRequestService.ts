@@ -56,10 +56,55 @@ type UpdateMedicineRequestInput = {
   allowSubstitutes?: boolean;
 };
 
+type CreateMedicineReservationInput = {
+  requestId: string;
+  replyId: string;
+  reservedQuantity: number;
+  durationDays: 1 | 3 | 7;
+};
+
+type CreateMedicineReservationResult = {
+  reservationId: string;
+};
+
+type CancelMedicineReservationInput = {
+  reservationId: string;
+};
+
+type ExpireMedicineReservationInput = {
+  reservationId: string;
+};
+
+type RenewMedicineReservationInput = {
+  reservationId: string;
+  reservedQuantity: number;
+  durationDays: 1 | 3 | 7;
+};
+
 const createMedicineRequestCallable = httpsCallable<
   CreateMedicineRequestPayload,
   MedicineRequest
 >(functions, "createMedicineRequest");
+
+const createMedicineReservationCallable = httpsCallable<
+  CreateMedicineReservationInput,
+  CreateMedicineReservationResult
+>(functions, "createMedicineReservation");
+
+const cancelMedicineReservationCallable = httpsCallable<
+  CancelMedicineReservationInput,
+  { success: boolean }
+>(functions, "cancelMedicineReservation");
+
+const expireMedicineReservationCallable = httpsCallable<
+  ExpireMedicineReservationInput,
+  { success: boolean }
+>(functions, "expireMedicineReservation");
+
+const renewMedicineReservationCallable = httpsCallable<
+  RenewMedicineReservationInput,
+  { success: boolean }
+>(functions, "renewMedicineReservation");
 
 const uploadMedicineRequestImage = async (
   uri: string,
@@ -142,11 +187,10 @@ export const listenToMyActiveMedicineRequests = (
   return onSnapshot(
     q,
     (snapshot) => {
-      const requests = snapshot.docs
-        .map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        })) as MedicineRequest[];
+      const requests = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      })) as MedicineRequest[];
 
       const activeRequests = requests
         .filter((request) => request.status === "active")
@@ -253,22 +297,6 @@ export const listenToMedicineRequestById = (
   );
 };
 
-type CreateMedicineReservationInput = {
-  requestId: string;
-  replyId: string;
-  reservedQuantity: number;
-  durationDays: 1 | 3 | 7;
-};
-
-type CreateMedicineReservationResult = {
-  reservationId: string;
-};
-
-const createMedicineReservationCallable = httpsCallable<
-  CreateMedicineReservationInput,
-  CreateMedicineReservationResult
->(functions, "createMedicineReservation");
-
 export const createMedicineReservation = async (
   input: CreateMedicineReservationInput
 ): Promise<CreateMedicineReservationResult> => {
@@ -303,7 +331,8 @@ export const listenToMyReservedMedicineRequests = (
       const visibleReservations = reservations.filter(
         (reservation) =>
           reservation.status === "pending" ||
-          reservation.status === "confirmed"
+          reservation.status === "confirmed" ||
+          reservation.status === "expired"
       );
 
       onReservationsChange(visibleReservations);
@@ -312,19 +341,22 @@ export const listenToMyReservedMedicineRequests = (
   );
 };
 
-type CancelMedicineReservationInput = {
-  reservationId: string;
-};
-
-const cancelMedicineReservationCallable = httpsCallable<
-  CancelMedicineReservationInput,
-  { success: boolean }
->(functions, "cancelMedicineReservation");
-
 export const cancelMedicineReservation = async (
   reservationId: string
 ): Promise<void> => {
-  await cancelMedicineReservationCallable({reservationId});
+  await cancelMedicineReservationCallable({ reservationId });
+};
+
+export const expireMedicineReservation = async (
+  reservationId: string
+): Promise<void> => {
+  await expireMedicineReservationCallable({ reservationId });
+};
+
+export const renewMedicineReservation = async (
+  input: RenewMedicineReservationInput
+): Promise<void> => {
+  await renewMedicineReservationCallable(input);
 };
 
 export const listenToMedicineRequestReplyById = (
@@ -374,6 +406,7 @@ export const listenToMedicineReservationById = (
     (error) => onError(error)
   );
 };
+
 export const listenToCompletedMedicineReservations = (
   onReservationsChange: (reservations: MedicineReservation[]) => void,
   onError: (error: Error) => void

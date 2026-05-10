@@ -22,9 +22,16 @@ import { listenToCompletedMedicineReservations } from "../services/medicineReque
 import BottomNavbar from "../components/BottomNavbar";
 import { profileStyles as styles } from "../styles/profileStyles";
 
+import type { Pharmacy } from "../../../shared/types/pharmacy";
+import {
+  getFavoritePharmacies,
+  listenToFavoritePharmacyIds,
+} from "../services/pharmacyService";
+
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
 
+  const [favoritePharmacies, setFavoritePharmacies] = useState<Pharmacy[]>([]);
   const [userProfile, setUserProfile] = useState<AppUser | null>(null);
   const [completedReservations, setCompletedReservations] = useState<
     MedicineReservation[]
@@ -57,9 +64,18 @@ export default function ProfileScreen() {
         console.error("Failed to listen to completed reservations:", error)
     );
 
+    const unsubscribeFavorites = listenToFavoritePharmacyIds(
+  async () => {
+    const items = await getFavoritePharmacies();
+    setFavoritePharmacies(items);
+  },
+  (error) => console.error("Failed to listen to favorite pharmacies:", error)
+);
+
     return () => {
       unsubscribeProfile();
       unsubscribeCompleted();
+      unsubscribeFavorites();
     };
   }, []);
 
@@ -224,6 +240,55 @@ export default function ProfileScreen() {
             ))}
           </ScrollView>
         )}
+        <View style={styles.carouselHeader}>
+  <Text style={styles.sectionTitle}>Favorite pharmacies</Text>
+</View>
+
+{favoritePharmacies.length === 0 ? (
+  <View style={styles.emptyCard}>
+    <Ionicons name="star-outline" size={28} color="#4e7e5d" />
+    <Text style={styles.emptyTitle}>No favorite pharmacies yet</Text>
+    <Text style={styles.emptyText}>
+      Pharmacies you favorite will appear here.
+    </Text>
+  </View>
+) : (
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={styles.carousel}
+  >
+    {favoritePharmacies.map((pharmacy) => (
+      <Pressable
+        key={pharmacy.id}
+        style={styles.purchaseCard}
+        onPress={() =>
+          navigation.navigate("PharmacyDetails", { pharmacy })
+        }
+      >
+        <View style={styles.purchaseIcon}>
+          <Ionicons name="medical-outline" size={22} color="#4e7e5d" />
+        </View>
+
+        <Text style={styles.purchaseName} numberOfLines={2}>
+          {pharmacy.pharmacyNameEnglish ||
+            pharmacy.pharmacyNameArabic ||
+            "Pharmacy"}
+        </Text>
+
+        <Text style={styles.purchaseMeta}>
+          {pharmacy.address?.city ||
+            pharmacy.address?.region ||
+            "Location not specified"}
+        </Text>
+
+        <View style={styles.completedBadge}>
+          <Text style={styles.completedBadgeText}>Favorite</Text>
+        </View>
+      </Pressable>
+    ))}
+  </ScrollView>
+)}
       </ScrollView>
 
       <BottomNavbar />
