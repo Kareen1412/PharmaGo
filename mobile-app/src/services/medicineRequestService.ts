@@ -15,6 +15,7 @@ import { auth, db, functions, storage } from "../config/firebase";
 import type {
   MedicineRequest,
   MedicineRequestUrgency,
+  MedicineRequestTargetScope,
 } from "../../../shared/types/medRequest";
 
 import type { PharmacyMedicineRequestReply } from "../../../shared/types/pharmacyRequestReply";
@@ -28,6 +29,7 @@ type CreateMedicineRequestInput = {
   notes: string | null;
   localImageUri: string | null;
   region: LebanonRegion | null;
+  targetScope: MedicineRequestTargetScope;
   city: string | null;
   locationLat: number | null;
   locationLng: number | null;
@@ -41,6 +43,7 @@ type CreateMedicineRequestPayload = {
   notes: string | null;
   imageUrl: string | null;
   imageStoragePath: string | null;
+  targetScope: MedicineRequestTargetScope;
   region: LebanonRegion | null;
   city: string | null;
   locationLat: number | null;
@@ -158,6 +161,7 @@ export const createMedicineRequest = async (
     notes: input.notes?.trim() || null,
     imageUrl,
     imageStoragePath,
+    targetScope: input.targetScope,
     region: input.region,
     city: input.city,
     locationLat: input.locationLat,

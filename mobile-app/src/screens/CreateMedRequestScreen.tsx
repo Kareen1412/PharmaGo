@@ -26,7 +26,7 @@ import {
   type LebanonRegion,
 } from "../../../shared/constants/lebanonLocations";
 
-type SearchMode = "nearby" | "area";
+type SearchMode = "nearby" | "area" | "all";
 
 export default function CreateMedicineRequestScreen() {
   const navigation = useNavigation<any>();
@@ -44,6 +44,12 @@ export default function CreateMedicineRequestScreen() {
   const [isUrgent, setIsUrgent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
+
+  const chooseAllMode = () => {
+  setSearchMode("all");
+  setRegion(null);
+  setCity(null);
+};
 
   const chooseNearbyMode = async () => {
   setSearchMode("nearby");
@@ -123,6 +129,7 @@ export default function CreateMedicineRequestScreen() {
         medicineName,
         notes: notes.trim() || null,
         localImageUri: imageUri,
+        targetScope: searchMode,
         region: selectedRegion,
         city: selectedCity,
         locationLat,
@@ -231,6 +238,44 @@ export default function CreateMedicineRequestScreen() {
           </Text>
 
           <View style={styles.searchModeGrid}>
+            <Pressable
+  style={[
+    styles.searchModeCard,
+    searchMode === "all" && styles.searchModeCardActive,
+  ]}
+  onPress={chooseAllMode}
+>
+  <View
+    style={[
+      styles.searchModeIcon,
+      searchMode === "all" && styles.searchModeIconActive,
+    ]}
+  >
+    <Ionicons
+      name="earth-outline"
+      size={22}
+      color={searchMode === "all" ? "#4e7e5d" : "#66736a"}
+    />
+  </View>
+
+  <View style={styles.searchModeTextBox}>
+    <Text
+      style={[
+        styles.searchModeTitle,
+        searchMode === "all" && styles.searchModeTitleActive,
+      ]}
+    >
+      All pharmacies
+    </Text>
+    <Text style={styles.searchModeSubtitle}>
+      Send your request to all verified active pharmacies.
+    </Text>
+  </View>
+
+  {searchMode === "all" && (
+    <Ionicons name="checkmark-circle" size={22} color="#4e7e5d" />
+  )}
+</Pressable>
             <Pressable
               style={[
                 styles.searchModeCard,

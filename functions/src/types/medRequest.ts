@@ -2,6 +2,8 @@ export type MedicineRequestStatus = "active" | "reserved" | "deleted";
 
 export type MedicineRequestUrgency = "normal" | "urgent";
 
+export type MedicineRequestTargetScope = "nearby" | "area" | "all";
+
 export type MedicineRequest = {
   id: string;
 
@@ -13,6 +15,8 @@ export type MedicineRequest = {
 
   imageUrl: string | null;
   imageStoragePath: string | null;
+
+  targetScope: MedicineRequestTargetScope;
 
   region: string | null;
   city: string | null;

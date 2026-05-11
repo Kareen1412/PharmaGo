@@ -77,6 +77,9 @@ const canPharmacySeeRequest = (
   request: MedicineRequest,
   pharmacy: PharmacyRequestFilterData
 ) => {
+  if (request.targetScope === "all") {
+  return true;
+}
   const requestLat = request.locationLat;
   const requestLng = request.locationLng;
 

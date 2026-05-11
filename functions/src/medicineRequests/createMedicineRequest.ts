@@ -4,6 +4,7 @@ import {onCall, HttpsError} from "firebase-functions/v2/https";
 import type {
   MedicineRequest,
   MedicineRequestUrgency,
+  MedicineRequestTargetScope,
 } from "../types/medRequest";
 
 import {
@@ -19,6 +20,8 @@ type CreateMedicineRequestData = {
 
   imageUrl?: string | null;
   imageStoragePath?: string | null;
+
+  targetScope?: MedicineRequestTargetScope;
 
   region?: LebanonRegion | null;
   city?: string | null;
@@ -118,6 +121,16 @@ export const createMedicineRequest = onCall(
     const urgency = data.urgency ?? "normal";
     const allowSubstitutes = data.allowSubstitutes ?? true;
 
+    const targetScope = data.targetScope ?? "nearby";
+
+    if (
+      targetScope !== "nearby" &&
+      targetScope !== "area" &&
+      targetScope !== "all"
+    ) {
+      throw new HttpsError("invalid-argument", "Invalid target scope.");
+    }
+
     if (urgency !== "normal" && urgency !== "urgent") {
       throw new HttpsError("invalid-argument", "Invalid urgency value.");
     }
@@ -128,18 +141,45 @@ export const createMedicineRequest = onCall(
     const hasArea = regionValue !== null;
     const hasNearby = locationLat !== null && locationLng !== null;
 
-    if (!hasArea && !hasNearby) {
-      throw new HttpsError(
-        "invalid-argument",
-        "Choose nearby search or a pharmacy region."
-      );
+    if (targetScope === "nearby") {
+      if (!hasNearby) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Location is required for nearby search."
+        );
+      }
+
+      if (hasArea) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Nearby search cannot include pharmacy area."
+        );
+      }
     }
 
-    if (hasArea && hasNearby) {
-      throw new HttpsError(
-        "invalid-argument",
-        "Choose either nearby search or pharmacy area, not both."
-      );
+    if (targetScope === "area") {
+      if (!hasArea) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Pharmacy region is required for area search."
+        );
+      }
+
+      if (hasNearby) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Area search cannot include nearby location."
+        );
+      }
+    }
+
+    if (targetScope === "all") {
+      if (hasArea || hasNearby) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Send to all pharmacies cannot include area or nearby location."
+        );
+      }
     }
 
     const now = Date.now();
@@ -153,6 +193,8 @@ export const createMedicineRequest = onCall(
 
       imageUrl,
       imageStoragePath,
+
+      targetScope,
 
       region: regionValue,
       city,
