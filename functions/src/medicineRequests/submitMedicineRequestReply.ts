@@ -39,6 +39,10 @@ const canPharmacySeeRequest = (
   request: FirebaseFirestore.DocumentData,
   pharmacy: FirebaseFirestore.DocumentData
 ) => {
+  if (request.targetScope === "all") {
+    return true;
+  }
+
   const requestLat = request.locationLat;
   const requestLng = request.locationLng;
 
