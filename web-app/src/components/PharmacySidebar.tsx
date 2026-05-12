@@ -178,7 +178,7 @@ export default function PharmacySidebar() {
 
   const handleLogout = async () => {
     await signOut(auth);
-    navigate("/signin");
+    navigate("/login");
   };
 
   return (

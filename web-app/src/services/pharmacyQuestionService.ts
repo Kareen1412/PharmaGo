@@ -97,6 +97,12 @@ export const sendPharmacyQuestionReply = async (data: {
             }
 
             const pharmacy = snapshot.data();
+            if (
+              pharmacy.verificationStatus !== "verified" ||
+              pharmacy.isActive !== true
+            ) {
+              throw new Error("Only verified and active pharmacies can reply.");
+            }
 
             await addDoc(collection(db, "questionReplies"), {
               questionId: data.questionId,
