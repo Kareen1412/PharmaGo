@@ -12,7 +12,6 @@ import styles from "../styles/pharmacy-dashboard.module.css";
 import VerificationCard, {
   type VerificationStatus,
 } from "../components/VerificationCard";
-import PharmacySidebar from "../components/PharmacySidebar";
 import type { MedicineReservation } from "../../../shared/types/reservedMedRequest";
 import type { PharmacyMedicineRequestReply } from "../../../shared/types/pharmacyRequestReply";
 import type { QuestionReply } from "../../../shared/types/question";
